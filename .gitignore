@@ -1,0 +1,6 @@
+.idea
+.directory
+.env
+/target
+/result
+/.direnv
