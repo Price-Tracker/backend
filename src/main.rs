@@ -35,12 +35,14 @@ async fn main() -> std::io::Result<()> {
 
     env_logger::init_from_env(env_logger::Env::new().default_filter_or("info"));
 
+    let ip = env::var("IP")
+        .unwrap_or("0.0.0.0".to_string());
     let port = env::var("PORT")
         .expect("PORT must be set")
         .parse::<u16>()
         .expect("Failed to parse PORT env");
 
-    log::info!("Starting server at http://127.0.0.1:{port}");
+    log::info!("Starting server at http://{ip}:{port}");
 
     use actix_web::{App, HttpServer};
 
@@ -49,7 +51,7 @@ async fn main() -> std::io::Result<()> {
             .wrap(middleware::Logger::default())
             .service(ping)
     })
-        .bind(("127.0.0.1", port))?
+        .bind((ip, port))?
         .run()
         .await
 }
