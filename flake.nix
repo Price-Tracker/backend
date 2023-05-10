@@ -38,7 +38,7 @@
           let
             defaultPort = "8080";
           in
-          pkgs.dockerTools.buildLayeredImage {
+          pkgs.dockerTools.streamLayeredImage {
             name = "backend";
             tag = "${self.lastModifiedDate}-${self.shortRev or "dirty"}";
             config = {
