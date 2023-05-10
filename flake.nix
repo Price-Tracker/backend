@@ -45,7 +45,7 @@
               ExposedPorts = {
                 "${defaultPort}/tcp" = { };
               };
-              Env = [ 
+              Env = [
                 "PORT=${defaultPort}"
                 "DATABASE_URL=postgres://username:password@address/database"
               ];
