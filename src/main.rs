@@ -14,8 +14,6 @@ pub struct Test {
 
 #[get("/ping")]
 async fn ping() -> impl Responder {
-    dotenv().ok();
-
     let database_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
     if let Ok(mut connection) = PgConnection::establish(&database_url) {
         let connection = &mut connection;
@@ -33,9 +31,16 @@ async fn ping() -> impl Responder {
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
+    dotenv().ok();
+
     env_logger::init_from_env(env_logger::Env::new().default_filter_or("info"));
 
-    log::info!("Starting server at http://127.0.0.1:8080");
+    let port = env::var("PORT")
+        .expect("PORT must be set")
+        .parse::<u16>()
+        .expect("Failed to parse PORT env");
+
+    log::info!("Starting server at http://127.0.0.1:{port}");
 
     use actix_web::{App, HttpServer};
 
@@ -44,7 +49,7 @@ async fn main() -> std::io::Result<()> {
             .wrap(middleware::Logger::default())
             .service(ping)
     })
-        .bind(("127.0.0.1", 8080))?
+        .bind(("127.0.0.1", port))?
         .run()
         .await
 }
