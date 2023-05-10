@@ -7,13 +7,9 @@
       inputs.nixpkgs.follows = "nixpkgs";
     };
     utils.url = "github:numtide/flake-utils";
-    gitignore = {
-      url = "github:hercules-ci/gitignore.nix";
-      inputs.nixpkgs.follows = "nixpkgs";
-    };
   };
 
-  outputs = { self, nixpkgs, utils, naersk, rust-overlay, gitignore }:
+  outputs = { self, nixpkgs, utils, naersk, rust-overlay }:
     utils.lib.eachDefaultSystem (system:
       let
         pkgs = import nixpkgs {
@@ -28,10 +24,11 @@
           rustc = rust-toolchain;
         };
 
+        ignoreSource = [ ".github" "*.nix" ];
         backend = naersk-lib.buildPackage {
           inherit nativeBuildInputs buildInputs;
           pname = "backend";
-          src = gitignore.lib.gitignoreSource ./.;
+          src = pkgs.nix-gitignore.gitignoreSource ignoreSource ./.;
         };
 
         dockerImage =
