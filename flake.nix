@@ -34,11 +34,34 @@
           src = gitignore.lib.gitignoreSource ./.;
         };
 
+        dockerImage =
+          let
+            defaultPort = "8080";
+          in
+          pkgs.dockerTools.buildLayeredImage {
+            name = "backend";
+            tag = "${self.lastModifiedDate}-${self.shortRev or "dirty"}";
+            config = {
+              Cmd = [
+                "${backend}/bin/backend"
+              ];
+              ExposedPorts = {
+                "${defaultPort}/tcp" = { };
+              };
+              Env = [ 
+                "PORT=${defaultPort}"
+                "DATABASE_URL=postgres://username:password@address/database"
+              ];
+            };
+          };
+
         nativeBuildInputs = with pkgs; [ clang ];
         buildInputs = with pkgs; [ postgresql.lib ];
       in
       {
-        packages.backend = backend;
+        packages = {
+          inherit backend dockerImage;
+        };
         packages.default = self.packages.${system}.backend;
 
         devShells.default = with pkgs; mkShell {
