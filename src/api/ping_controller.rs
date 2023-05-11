@@ -1,8 +1,8 @@
 use actix_web::{get, Error, HttpResponse, web};
-use deadpool_diesel::postgres::Pool;
-use diesel::{IntoSql, RunQueryDsl, select};
-use diesel::sql_types::Text;
 use crate::errors::MyError;
+use deadpool_diesel::postgres::Pool;
+use diesel::sql_types::Text;
+use diesel::{IntoSql, RunQueryDsl, select};
 
 #[get("/ping")]
 pub async fn ping(db_pool: web::Data<Pool>) -> Result<HttpResponse, Error> {

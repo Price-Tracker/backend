@@ -1,12 +1,12 @@
-mod schema;
-mod handlers;
-mod errors;
+mod api;
 mod config;
+mod errors;
+mod schema;
 
-use std::env;
 use actix_web::{App, HttpServer, middleware, web};
 use dotenvy::dotenv;
 use log::info;
+use std::env;
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
@@ -27,7 +27,7 @@ async fn main() -> std::io::Result<()> {
     HttpServer::new(move || App::new()
         .wrap(middleware::Logger::default())
         .app_data(web::Data::new(pool.clone()))
-        .service(handlers::ping)
+        .configure(config::app::configure_services)
     )
         .bind(app_url)?
         .run()
