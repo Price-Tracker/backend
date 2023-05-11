@@ -1,7 +1,9 @@
 mod api;
 mod config;
 mod errors;
+mod models;
 mod schema;
+mod services;
 
 use actix_web::{App, HttpServer, middleware, web};
 use dotenvy::dotenv;

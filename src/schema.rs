@@ -198,7 +198,7 @@ diesel::table! {
         nickname -> Nullable<Varchar>,
         login -> Varchar,
         email -> Varchar,
-        password_hash -> Varchar,
+        password -> Varchar,
         created_date -> Date,
         updated_date -> Date,
     }

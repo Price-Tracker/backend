@@ -9,13 +9,13 @@ create sequence table_name_company_id_seq
 
 create table users
 (
-    id            integer default nextval('user_id_seq'::regclass) not null,
-    nickname      varchar(16),
-    login         varchar(16)                                      not null,
-    email         varchar(32)                                      not null,
-    password_hash varchar(40)                                      not null,
-    created_date  date    default now()                            not null,
-    updated_date  date    default now()                            not null,
+    id           serial             not null,
+    nickname     varchar(16),
+    login        varchar(16)        not null,
+    email        varchar(32)        not null,
+    password     varchar            not null,
+    created_date date default now() not null,
+    updated_date date default now() not null,
     constraint user_pk
         primary key (id)
 );
@@ -132,10 +132,10 @@ create table companies
 
 create table retail_chains
 (
-    id         integer default nextval('table_name_id_seq'::regclass)         not null,
-    company_id integer default nextval('table_name_company_id_seq'::regclass) not null,
-    name       varchar(40)                                                    not null,
-    website    varchar(40)                                                    not null,
+    id         serial      not null,
+    company_id serial      not null,
+    name       varchar(40) not null,
+    website    varchar(40) not null,
     constraint table_name_pk
         primary key (id),
     constraint table_name_companies_id_fk
