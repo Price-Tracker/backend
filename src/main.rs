@@ -1,39 +1,29 @@
 mod schema;
+mod handlers;
+mod errors;
 
 use std::env;
-use actix_web::{get, HttpResponse, middleware, Responder};
-use diesel::{Connection, PgConnection};
-use diesel::prelude::*;
+use actix_web::{middleware, web};
+use deadpool_diesel::postgres::{Manager, Pool};
+use deadpool_diesel::Runtime;
 use dotenvy::dotenv;
 
-#[derive(Queryable)]
-pub struct Test {
-    pub id: i32,
-    pub is_done: bool
-}
-
-#[get("/ping")]
-async fn ping() -> impl Responder {
+async fn get_connection_pool() -> Pool {
     let database_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
-    if let Ok(mut connection) = PgConnection::establish(&database_url) {
-        let connection = &mut connection;
-        use self::schema::test::dsl::*;
-
-        let results = test
-            .load::<Test>(connection)
-            .expect("Fail");
-
-        HttpResponse::Ok().body(format!("Pong! Got results: {}", results.len()))
-    } else {
-        HttpResponse::BadGateway().body("Failed to connect to database!")
-    }
+    let manager = Manager::new(database_url, Runtime::Tokio1);
+    Pool::builder(manager)
+        .max_size(32)
+        .build()
+        .unwrap()
 }
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
+    env_logger::init_from_env(env_logger::Env::new().default_filter_or("info"));
+
     dotenv().ok();
 
-    env_logger::init_from_env(env_logger::Env::new().default_filter_or("info"));
+    let pool = get_connection_pool().await;
 
     let ip = env::var("IP")
         .unwrap_or("0.0.0.0".to_string());
@@ -46,10 +36,11 @@ async fn main() -> std::io::Result<()> {
 
     use actix_web::{App, HttpServer};
 
-    HttpServer::new(|| {
+    HttpServer::new(move || {
         App::new()
             .wrap(middleware::Logger::default())
-            .service(ping)
+            .app_data(web::Data::new(pool.clone()))
+            .service(handlers::ping)
     })
         .bind((ip, port))?
         .run()

@@ -1,5 +1,0 @@
-CREATE TABLE test
-(
-    id      SERIAL PRIMARY KEY,
-    is_done BOOLEAN NOT NULL DEFAULT FALSE
-)
