@@ -19,8 +19,8 @@ async fn main() -> std::io::Result<()> {
     let app_url = format!("{}:{}", app_host, app_port);
     let db_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
 
-    config::db::run_migrations(&db_url).await;
     let pool = config::db::get_connection_pool(db_url).await;
+    config::db::run_migrations(pool.clone()).await;
 
     info!("Starting server at http://{app_url}");
 

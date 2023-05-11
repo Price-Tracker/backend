@@ -1,6 +1,5 @@
 use deadpool_diesel::postgres::{Manager, Pool};
 use deadpool_diesel::Runtime;
-use diesel::{Connection, PgConnection};
 use diesel_migrations::{embed_migrations, EmbeddedMigrations, MigrationHarness};
 use log::info;
 
@@ -18,12 +17,16 @@ pub async fn get_connection_pool(db_url: String) -> Pool {
     pool
 }
 
-pub async fn run_migrations(db_url: &String) {
+pub async fn run_migrations(pool: Pool) {
     info!("Preparing to run db migrations...");
-    let mut conn =
-        PgConnection::establish(db_url).unwrap_or_else(|e| panic!("Error connecting to {db_url}: {e}"));
-    let _ = &mut conn
-        .run_pending_migrations(MIGRATIONS)
-        .unwrap_or_else(|e| panic!("Couldn't run DB Migrations: {e}"));
+    let conn = pool.get().await.expect("Failed to get connection from the pool.");
+    conn
+        .interact(|conn| conn
+            .run_pending_migrations(MIGRATIONS)
+            .map(|_| ()))
+        .await
+        .unwrap()
+        .unwrap();
+
     info!("Database migrations complete.");
 }
