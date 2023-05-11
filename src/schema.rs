@@ -189,6 +189,7 @@ diesel::table! {
     user_tokens (id) {
         id -> Int4,
         user_id -> Int4,
+        refresh_token -> Varchar,
     }
 }
 

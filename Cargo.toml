@@ -8,6 +8,9 @@ dotenvy = "0.15.7"
 
 actix-web = "4.3.1"
 argon2 = "0.5.0"
+actix-jwt-auth-middleware = "0.3.0"
+jwt-compact = { version = "0.7.0", features = [ "exonum-crypto" ] }
+exonum-crypto = "1.0.0"
 
 diesel = { version = "2.0.4", features = [ "postgres", "chrono" ] }
 diesel_migrations = "2.0.0"

@@ -54,8 +54,8 @@
             };
           };
 
-        nativeBuildInputs = with pkgs; [ clang ];
-        buildInputs = with pkgs; [ postgresql.lib ];
+        nativeBuildInputs = with pkgs; [ clang pkgconfig protobuf ];
+        buildInputs = with pkgs; [ postgresql.lib libsodium ];
       in
       {
         packages = {
