@@ -33,6 +33,7 @@
 
         dockerImage =
           let
+            defaultHost = "0.0.0.0";
             defaultPort = "8080";
           in
           pkgs.dockerTools.streamLayeredImage {
@@ -46,7 +47,8 @@
                 "${defaultPort}/tcp" = { };
               };
               Env = [
-                "PORT=${defaultPort}"
+                "APP_HOST=${defaultHost}"
+                "APP_PORT=${defaultPort}"
                 "DATABASE_URL=postgres://username:password@address/database"
               ];
             };
