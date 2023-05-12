@@ -21,7 +21,7 @@ pub async fn login(login: web::Json<LoginDTO>, pool: web::Data<Pool>, cookie_sig
             Ok(HttpResponse::Ok()
                 .cookie(cookie_signer.create_access_cookie(&user_claims).unwrap())
                 .cookie(cookie_signer.create_refresh_cookie(&user_claims).unwrap())
-                .finish()
+                .json(ResponseBody::new("Login successfully", ""))
             )
         }
         Err(err) => { Ok(err.response()) }
