@@ -4,7 +4,7 @@ use deadpool_diesel::postgres::Pool;
 use crate::config::app::Config;
 use crate::errors::ServiceError;
 use crate::models::user::{LoginDTO, User, UserDTO};
-use crate::models::user_tokens::UserTokensDTO;
+use crate::models::user_tokens::{UserRefreshTokenDTO, UserTokensDTO};
 
 pub async fn signup(user: UserDTO, pool: &Data<Pool>) -> Result<String, ServiceError> {
     let conn = &pool.get().await.unwrap();
@@ -24,8 +24,21 @@ pub async fn login(login: LoginDTO, pool: &Data<Pool>, config: Data<Config>) -> 
 
     conn.interact(|conn|
         match User::login(conn, login, config) {
-            Ok(user_claims) => Ok(user_claims),
+            Ok(user_tokens) => Ok(user_tokens),
             Err(message) => Err(ServiceError::new(StatusCode::UNAUTHORIZED, message)),
+        }
+    )
+        .await
+        .unwrap()
+}
+
+pub async fn refresh_token(user_refresh_token: UserRefreshTokenDTO, pool: &Data<Pool>, config: Data<Config>) -> Result<UserTokensDTO, ServiceError> {
+    let conn = &pool.get().await.unwrap();
+
+    conn.interact(|conn|
+        match User::refresh_token(conn, user_refresh_token, config) {
+            Ok(user_tokens) => Ok(user_tokens),
+            Err(message) => Err(ServiceError::new(StatusCode::NOT_FOUND, message)),
         }
     )
         .await

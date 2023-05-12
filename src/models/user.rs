@@ -2,17 +2,15 @@ use actix_web::web::Data;
 use argon2::{Argon2, PasswordHash, PasswordHasher, PasswordVerifier};
 use argon2::password_hash::rand_core::OsRng;
 use argon2::password_hash::SaltString;
-use chrono::{Duration, NaiveDate, Utc};
+use chrono::NaiveDate;
 use crate::schema::users::{self, dsl::*};
 use diesel::prelude::*;
-use jsonwebtoken::EncodingKey;
 use log::info;
 use serde::{Serialize, Deserialize};
 use crate::config::app::Config;
-use crate::middlewares::jwt_middleware::TokenClaims;
-use crate::models::user_tokens::UserTokensDTO;
+use crate::models::user_tokens::{UserRefreshTokenDTO, UserToken, UserTokensDTO};
 
-#[derive(Identifiable, Queryable)]
+#[derive(Identifiable, Queryable, Clone)]
 pub struct User {
     pub id: i32,
     pub nickname: Option<String>,
@@ -72,27 +70,12 @@ impl User {
                 if Argon2::default().verify_password(login_cred.password.as_bytes(), &parsed_hash).is_ok() {
                     info!("Password for user id {} is right", fetched_user.id);
 
-                    let now = Utc::now();
-
-                    let token_claims = TokenClaims {
-                        sub: fetched_user.id.to_string(),
-                        iat: now.timestamp() as usize,
-                        exp: (now + Duration::seconds(config.jwt_expires_in_secs as i64)).timestamp() as usize,
-                        nickname: fetched_user.nickname,
-                        login: fetched_user.login,
-                        roles: vec![]
-                    };
-
-                    let access_token = jsonwebtoken::encode(
-                        &jsonwebtoken::Header::default(),
-                        &token_claims,
-                        &EncodingKey::from_secret(config.jwt_secret.as_ref()),
-                    ).unwrap();
+                    let access_token = UserToken::generate_access_token(fetched_user.clone(), config);
+                    let refresh_token = UserToken::generate_refresh_token(conn, fetched_user.clone());
 
                     let user_tokens = UserTokensDTO {
                         access_token,
-                        // TODO: implement refresh token
-                        refresh_token: String::new()
+                        refresh_token
                     };
 
                     return Ok(user_tokens);
@@ -104,6 +87,20 @@ impl User {
             info!("Can't find user with login or email {}", login_cred.login_or_email);
         }
         Err("Login, email or password is wrong!".to_string())
+    }
+
+    pub fn refresh_token(conn: &mut PgConnection, user_refresh_token: UserRefreshTokenDTO, config: Data<Config>) -> Result<UserTokensDTO, String> {
+        if let Ok(user_token) = UserToken::find_refresh_token(conn, user_refresh_token.refresh_token.clone()) {
+            let user_tokens = UserToken::refresh_tokens(conn, user_token, config);
+
+            Ok(user_tokens)
+        } else {
+            Err("Refresh token not found!".to_string())
+        }
+    }
+
+    pub fn find_user_by_id(conn: &mut PgConnection, _id: i32) -> QueryResult<User> {
+        users.filter(id.eq(_id)).get_result::<User>(conn)
     }
 
     pub fn find_user_by_login(conn: &mut PgConnection, _login: &str) -> QueryResult<User> {

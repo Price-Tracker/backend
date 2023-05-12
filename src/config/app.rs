@@ -52,6 +52,7 @@ pub fn configure_services(cfg: &mut web::ServiceConfig) {
                 web::scope("/user")
                     .service(account_controller::signup)
                     .service(account_controller::login)
+                    .service(account_controller::refresh_token)
             )
             .service(ping_controller::ping),
     );
