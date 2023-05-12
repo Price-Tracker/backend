@@ -50,6 +50,8 @@
                 "APP_HOST=${defaultHost}"
                 "APP_PORT=${defaultPort}"
                 "DATABASE_URL=postgres://username:password@address/database"
+                "JWT_SECRET=thisisasecret"
+                "JWT_EXPIRES_IN_SECS=300"
               ];
             };
           };
