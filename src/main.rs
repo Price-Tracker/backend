@@ -28,6 +28,7 @@ async fn main() -> std::io::Result<()> {
 
     HttpServer::new(move || App::new()
         .wrap(middleware::Logger::default())
+        .wrap(config::app::get_cors())
         .app_data(web::Data::new(pool.clone()))
         .configure(config::app::configure_services)
     )
