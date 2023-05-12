@@ -33,10 +33,10 @@ async fn main() -> std::io::Result<()> {
         .wrap(config::app::get_cors())
         .app_data(web::Data::new(pool.clone()))
         .app_data(web::Data::new(config.clone()))
-        .configure(config::app::configure_services)
         .service(
-            SwaggerUi::new("/swagger-ui/{_:.*}").url("/api-docs/openapi.json", openapi.clone())
-        ),
+            SwaggerUi::new("/api/swagger-ui/{_:.*}").url("/api/api-docs/openapi.json", openapi.clone())
+        )
+        .configure(config::app::configure_services),
     )
         .bind(app_url)?
         .run()
