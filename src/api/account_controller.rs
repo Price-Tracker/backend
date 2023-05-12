@@ -1,9 +1,9 @@
-use actix_jwt_auth_middleware::TokenSigner;
 use actix_web::{Result, HttpResponse, web, post};
 use deadpool_diesel::postgres::Pool;
-use jwt_compact::alg::Ed25519;
+use serde_json::json;
+use crate::config::app::Config;
 use crate::models::response::ResponseBody;
-use crate::models::user::{LoginDTO, UserClaims, UserDTO};
+use crate::models::user::{LoginDTO, UserDTO};
 use crate::services::account_service;
 
 #[post("/signup")]
@@ -15,13 +15,11 @@ pub async fn signup(user_dto: web::Json<UserDTO>, pool: web::Data<Pool>) -> Resu
 }
 
 #[post("/login")]
-pub async fn login(login: web::Json<LoginDTO>, pool: web::Data<Pool>, cookie_signer: web::Data<TokenSigner<UserClaims, Ed25519>>) -> Result<HttpResponse> {
-    match account_service::login(login.0, &pool).await {
-        Ok(user_claims) => {
+pub async fn login(login: web::Json<LoginDTO>, pool: web::Data<Pool>, config: web::Data<Config>) -> Result<HttpResponse> {
+    match account_service::login(login.0, &pool, config).await {
+        Ok(tokens) => {
             Ok(HttpResponse::Ok()
-                .cookie(cookie_signer.create_access_cookie(&user_claims).unwrap())
-                .cookie(cookie_signer.create_refresh_cookie(&user_claims).unwrap())
-                .json(ResponseBody::new("Login successfully", ""))
+                .json(json!({"status": "success", "tokens": tokens}))
             )
         }
         Err(err) => { Ok(err.response()) }

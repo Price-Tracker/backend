@@ -1,12 +1,16 @@
+use actix_web::web::Data;
 use argon2::{Argon2, PasswordHash, PasswordHasher, PasswordVerifier};
 use argon2::password_hash::rand_core::OsRng;
 use argon2::password_hash::SaltString;
-use chrono::{NaiveDate};
+use chrono::{Duration, NaiveDate, Utc};
 use crate::schema::users::{self, dsl::*};
 use diesel::prelude::*;
+use jsonwebtoken::EncodingKey;
 use log::info;
 use serde::{Serialize, Deserialize};
-use actix_jwt_auth_middleware::FromRequest;
+use crate::config::app::Config;
+use crate::middlewares::jwt_middleware::TokenClaims;
+use crate::models::user_tokens::UserTokensDTO;
 
 #[derive(Identifiable, Queryable)]
 pub struct User {
@@ -17,14 +21,6 @@ pub struct User {
     pub password: String,
     pub created_date: NaiveDate,
     pub updated_date: NaiveDate,
-}
-
-#[derive(Serialize, Deserialize, Debug, Clone, FromRequest)]
-pub struct UserClaims {
-    pub id: i32,
-    pub nickname: Option<String>,
-    pub login: String,
-    pub roles: Vec<String>
 }
 
 #[derive(Insertable, Serialize, Deserialize)]
@@ -66,7 +62,7 @@ impl User {
         }
     }
 
-    pub fn login(conn: &mut PgConnection, login_cred: LoginDTO) -> Result<UserClaims, String> {
+    pub fn login(conn: &mut PgConnection, login_cred: LoginDTO, config: Data<Config>) -> Result<UserTokensDTO, String> {
         if let Ok(fetched_user) = users
             .filter(login.eq(&login_cred.login_or_email))
             .or_filter(email.eq(&login_cred.login_or_email))
@@ -76,14 +72,30 @@ impl User {
                 if Argon2::default().verify_password(login_cred.password.as_bytes(), &parsed_hash).is_ok() {
                     info!("Password for user id {} is right", fetched_user.id);
 
-                    let user_claims = UserClaims {
-                        id: fetched_user.id,
+                    let now = Utc::now();
+
+                    let token_claims = TokenClaims {
+                        sub: fetched_user.id.to_string(),
+                        iat: now.timestamp() as usize,
+                        exp: (now + Duration::seconds(config.jwt_expires_in_secs as i64)).timestamp() as usize,
                         nickname: fetched_user.nickname,
                         login: fetched_user.login,
                         roles: vec![]
                     };
 
-                    return Ok(user_claims);
+                    let access_token = jsonwebtoken::encode(
+                        &jsonwebtoken::Header::default(),
+                        &token_claims,
+                        &EncodingKey::from_secret(config.jwt_secret.as_ref()),
+                    ).unwrap();
+
+                    let user_tokens = UserTokensDTO {
+                        access_token,
+                        // TODO: implement refresh token
+                        refresh_token: String::new()
+                    };
+
+                    return Ok(user_tokens);
                 } else {
                     info!("Password for user id {} is wrong", fetched_user.id);
                 }

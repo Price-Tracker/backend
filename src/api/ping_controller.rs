@@ -3,9 +3,10 @@ use crate::errors::MyError;
 use deadpool_diesel::postgres::Pool;
 use diesel::sql_types::Text;
 use diesel::{IntoSql, RunQueryDsl, select};
+use crate::middlewares::jwt_middleware::TokenClaims;
 
 #[get("/ping")]
-pub async fn ping(db_pool: web::Data<Pool>) -> Result<HttpResponse, Error> {
+pub async fn ping(db_pool: web::Data<Pool>, _: TokenClaims) -> Result<HttpResponse, Error> {
     let conn = db_pool.get().await.map_err(MyError::PoolError)?;
 
     let result = conn.interact(|conn| {

@@ -5,7 +5,7 @@ use log::info;
 
 pub const MIGRATIONS: EmbeddedMigrations = embed_migrations!();
 
-pub async fn get_connection_pool(db_url: String) -> Pool {
+pub async fn get_connection_pool(db_url: &str) -> Pool {
     info!("Creating connections pool...");
     let manager = Manager::new(db_url, Runtime::Tokio1);
     let pool = Pool::builder(manager)

@@ -1,6 +1,7 @@
 mod api;
 mod config;
 mod errors;
+mod middlewares;
 mod models;
 mod schema;
 mod services;
@@ -8,7 +9,7 @@ mod services;
 use actix_web::{App, HttpServer, middleware, web};
 use dotenvy::dotenv;
 use log::info;
-use std::env;
+use crate::config::app::Config;
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
@@ -16,20 +17,19 @@ async fn main() -> std::io::Result<()> {
 
     env_logger::init_from_env(env_logger::Env::new().default_filter_or("info"));
 
-    let app_host = env::var("APP_HOST").unwrap_or("0.0.0.0".to_string());
-    let app_port = env::var("APP_PORT").expect("APP_PORT must be set");
-    let app_url = format!("{}:{}", app_host, app_port);
-    let db_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
+    let config = Config::init();
 
-    let pool = config::db::get_connection_pool(db_url).await;
+    let pool = config::db::get_connection_pool(&config.database_url).await;
     config::db::run_migrations(pool.clone()).await;
 
-    info!("Starting server at http://{app_url}");
+    let app_url = config.app_url.clone();
+    info!("Starting server at http://{}", app_url);
 
     HttpServer::new(move || App::new()
         .wrap(middleware::Logger::default())
         .wrap(config::app::get_cors())
         .app_data(web::Data::new(pool.clone()))
+        .app_data(web::Data::new(config.clone()))
         .configure(config::app::configure_services)
     )
         .bind(app_url)?
