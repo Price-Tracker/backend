@@ -5,6 +5,13 @@ use diesel::sql_types::Text;
 use diesel::{IntoSql, RunQueryDsl, select};
 use crate::middlewares::jwt_middleware::TokenClaims;
 
+#[utoipa::path(
+    responses(
+        (status = 200, description = "Ping!", body = String),
+        (status = 400, description = "Unknown error"),
+    ),
+    context_path = "/api"
+)]
 #[get("/ping")]
 pub async fn ping(db_pool: web::Data<Pool>, _: TokenClaims) -> Result<HttpResponse, Error> {
     let conn = db_pool.get().await.map_err(MyError::PoolError)?;

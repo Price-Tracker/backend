@@ -1,7 +1,11 @@
 use std::env;
 use actix_cors::Cors;
 use actix_web::{http, web};
+use utoipa::{OpenApi, openapi};
+use crate::models::user::{LoginDTO, UserDTO};
+use crate::models::user_tokens::{UserTokensDTO, UserRefreshTokenDTO};
 use crate::api::*;
+use crate::models::response::ResponseTokens;
 
 #[derive(Debug, Clone)]
 pub struct Config {
@@ -32,9 +36,10 @@ impl Config {
 
 pub fn get_cors() -> Cors {
     Cors::default()
-        .allowed_origin_fn(|origin, _req_head| {
-            origin.as_bytes().starts_with(b"https://infinity.tail1f457.ts.net")
-        })
+        .allow_any_origin()
+        // .allowed_origin_fn(|origin, _req_head| {
+        //     origin.as_bytes().starts_with(b"https://infinity.tail1f457.ts.net")
+        // })
         .allowed_methods(vec!["GET", "POST", "PUT", "DELETE"])
         .allowed_headers(vec![
             http::header::AUTHORIZATION,
@@ -43,6 +48,32 @@ pub fn get_cors() -> Cors {
         ])
         .max_age(3600)
         .supports_credentials()
+}
+
+pub fn get_openapi() -> openapi::OpenApi {
+    #[derive(OpenApi)]
+    #[openapi(
+        paths(
+            account_controller::signup,
+            account_controller::login,
+            account_controller::refresh_token,
+            ping_controller::ping
+        ),
+        components(
+            schemas(
+                UserRefreshTokenDTO,
+                UserTokensDTO,
+                LoginDTO,
+                UserDTO,
+                ResponseTokens
+            )
+        )
+    )]
+    struct ApiDoc;
+
+    let openapi = ApiDoc::openapi();
+
+    openapi
 }
 
 pub fn configure_services(cfg: &mut web::ServiceConfig) {
@@ -54,6 +85,6 @@ pub fn configure_services(cfg: &mut web::ServiceConfig) {
                     .service(account_controller::login)
                     .service(account_controller::refresh_token)
             )
-            .service(ping_controller::ping),
+            .service(ping_controller::ping)
     );
 }

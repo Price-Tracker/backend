@@ -1,15 +1,21 @@
 use serde::{Serialize, Deserialize};
+use utoipa::ToSchema;
+use crate::models::user_tokens::UserTokensDTO;
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, ToSchema)]
+#[aliases(
+    ResponseTokens = ResponseBody<UserTokensDTO>,
+    ResponseLogin = ResponseBody<String>
+)]
 pub struct ResponseBody<T> {
-    pub message: String,
+    pub status: String,
     pub data: T,
 }
 
 impl<T> ResponseBody<T> {
-    pub fn new(message: &str, data: T) -> ResponseBody<T> {
+    pub fn new(status: &str, data: T) -> ResponseBody<T> {
         ResponseBody {
-            message: message.to_string(),
+            status: status.to_string(),
             data,
         }
     }

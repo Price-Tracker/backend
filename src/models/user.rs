@@ -7,6 +7,7 @@ use crate::schema::users::{self, dsl::*};
 use diesel::prelude::*;
 use log::info;
 use serde::{Serialize, Deserialize};
+use utoipa::ToSchema;
 use crate::config::app::Config;
 use crate::models::user_tokens::{UserRefreshTokenDTO, UserToken, UserTokensDTO};
 
@@ -21,7 +22,7 @@ pub struct User {
     pub updated_date: NaiveDate,
 }
 
-#[derive(Insertable, Serialize, Deserialize)]
+#[derive(Insertable, Serialize, Deserialize, ToSchema)]
 #[diesel(table_name = users)]
 pub struct UserDTO {
     pub login: String,
@@ -29,7 +30,7 @@ pub struct UserDTO {
     pub password: String,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, ToSchema)]
 pub struct LoginDTO {
     pub login_or_email: String,
     pub password: String,

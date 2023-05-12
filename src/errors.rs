@@ -34,7 +34,7 @@ impl ServiceError {
         ServiceError {
             http_status,
             body: ResponseBody {
-                message,
+                status: message,
                 data: String::new(),
             },
         }

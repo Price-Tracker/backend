@@ -5,6 +5,7 @@ use diesel::prelude::*;
 use jsonwebtoken::EncodingKey;
 use rand::distributions::Alphanumeric;
 use rand::Rng;
+use utoipa::ToSchema;
 use crate::config::app::Config;
 use crate::middlewares::jwt_middleware::TokenClaims;
 use crate::models::user::User;
@@ -24,13 +25,13 @@ pub struct UserTokenInsertable {
     pub refresh_token: String,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, ToSchema)]
 pub struct UserTokensDTO {
     pub access_token: String,
     pub refresh_token: String,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, ToSchema)]
 pub struct UserRefreshTokenDTO {
     pub refresh_token: String,
 }
