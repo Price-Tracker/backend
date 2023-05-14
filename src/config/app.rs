@@ -35,19 +35,7 @@ impl Config {
 }
 
 pub fn get_cors() -> Cors {
-    Cors::default()
-        .allow_any_origin()
-        // .allowed_origin_fn(|origin, _req_head| {
-        //     origin.as_bytes().starts_with(b"https://infinity.tail1f457.ts.net")
-        // })
-        .allowed_methods(vec!["GET", "POST", "PUT", "DELETE"])
-        .allowed_headers(vec![
-            http::header::AUTHORIZATION,
-            http::header::ACCEPT,
-            http::header::CONTENT_TYPE,
-        ])
-        .max_age(3600)
-        .supports_credentials()
+    Cors::permissive()
 }
 
 pub fn get_openapi() -> openapi::OpenApi {
