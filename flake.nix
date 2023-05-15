@@ -70,7 +70,7 @@
             diesel-cli
           ];
           buildInputs = buildInputs ++ [
-            (rust-toolchain.override { extensions = [ "rust-src" ]; })
+            (rust-toolchain.override { extensions = [ "rust-src" "rustfmt" ]; })
           ];
         };
 
