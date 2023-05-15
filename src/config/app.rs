@@ -72,6 +72,7 @@ pub fn configure_services(cfg: &mut web::ServiceConfig) {
                     .service(account_controller::login)
                     .service(account_controller::refresh_token),
             )
-            .service(ping_controller::ping),
+            .service(ping_controller::ping)
+            .service(category_controller::categories),
     );
 }

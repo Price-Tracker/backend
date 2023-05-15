@@ -1,3 +1,4 @@
+pub mod category;
 pub mod response;
 pub mod user;
 pub mod user_tokens;
