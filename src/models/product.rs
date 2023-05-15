@@ -2,6 +2,7 @@ use chrono::NaiveDate;
 use diesel::prelude::*;
 use diesel::sql_types::Float;
 use serde::{Deserialize, Serialize};
+use std::cmp::Ordering;
 
 use crate::schema::product_store_prices::{self, dsl::*};
 use crate::schema::products::{self, dsl::*};
@@ -42,6 +43,8 @@ pub struct ProductFilter {
 pub struct ProductDTO {
     product: Product,
     prices: Vec<ProductStorePrice>,
+    min_price: Option<f32>,
+    max_price: Option<f32>,
 }
 
 impl Product {
@@ -82,7 +85,23 @@ impl Product {
             .grouped_by(&filtered_products)
             .into_iter()
             .zip(filtered_products)
-            .map(|(prices, product)| ProductDTO { product, prices })
+            .map(|(prices, product)| {
+                let min_price = prices
+                    .iter()
+                    .min_by(|a, b| a.price.partial_cmp(&b.price).unwrap_or(Ordering::Equal))
+                    .map(|p| p.price);
+                let max_price = prices
+                    .iter()
+                    .max_by(|a, b| a.price.partial_cmp(&b.price).unwrap_or(Ordering::Equal))
+                    .map(|p| p.price);
+
+                ProductDTO {
+                    product,
+                    prices,
+                    min_price,
+                    max_price,
+                }
+            })
             .collect::<Vec<ProductDTO>>()
     }
 }
