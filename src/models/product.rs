@@ -55,18 +55,26 @@ impl Product {
             products_query = products_query.filter(category_id.eq(_category_id));
         }
 
-        let filtered_products = products_query.load::<Product>(conn).unwrap();
-
-        let mut prices_query = ProductStorePrice::belonging_to(&filtered_products)
-            .select(ProductStorePrice::as_select())
+        let mut product_ids_with_prices = product_store_prices
+            .select(product_id)
+            .group_by(product_id)
             .into_boxed();
+
         if let Some(min_price) = filter.min_price {
-            prices_query = prices_query.filter(price.ge(min_price))
+            product_ids_with_prices = product_ids_with_prices.filter(price.ge(min_price))
         }
 
         if let Some(max_price) = filter.max_price {
-            prices_query = prices_query.filter(price.le(max_price))
+            product_ids_with_prices = product_ids_with_prices.filter(price.le(max_price))
         }
+
+        products_query = products_query.filter(products::id.eq_any(product_ids_with_prices));
+
+        let filtered_products = products_query.load::<Product>(conn).unwrap();
+
+        let prices_query = ProductStorePrice::belonging_to(&filtered_products)
+            .select(ProductStorePrice::as_select())
+            .into_boxed();
 
         let filtered_prices = prices_query.load::<ProductStorePrice>(conn).unwrap();
 
