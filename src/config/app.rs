@@ -1,9 +1,10 @@
 use crate::api::*;
+use crate::models::category::Category;
 use crate::models::response::ResponseTokens;
 use crate::models::user::{LoginDTO, UserDTO};
 use crate::models::user_tokens::{UserRefreshTokenDTO, UserTokensDTO};
 use actix_cors::Cors;
-use actix_web::{http, web};
+use actix_web::web;
 use std::env;
 use utoipa::{openapi, OpenApi};
 
@@ -53,7 +54,8 @@ pub fn get_openapi() -> openapi::OpenApi {
             UserTokensDTO,
             LoginDTO,
             UserDTO,
-            ResponseTokens
+            ResponseTokens,
+            Category
         ))
     )]
     struct ApiDoc;
@@ -73,6 +75,7 @@ pub fn configure_services(cfg: &mut web::ServiceConfig) {
                     .service(account_controller::refresh_token),
             )
             .service(ping_controller::ping)
-            .service(category_controller::categories),
+            .service(category_controller::categories)
+            .service(product_controller::products),
     );
 }

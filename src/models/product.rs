@@ -1,0 +1,80 @@
+use chrono::NaiveDate;
+use diesel::prelude::*;
+use diesel::sql_types::Float;
+use serde::{Deserialize, Serialize};
+
+use crate::schema::product_store_prices::{self, dsl::*};
+use crate::schema::products::{self, dsl::*};
+
+sql_function!(fn array_agg(x: Float) -> Array<Float>);
+
+#[derive(Queryable, Identifiable, Selectable, Serialize)]
+#[diesel(table_name = products)]
+pub struct Product {
+    pub id: i32,
+    pub category_id: i32,
+    pub name: String,
+    pub description: Option<String>,
+    pub picture_url: Option<String>,
+    pub created_date: NaiveDate,
+    pub updated_date: NaiveDate,
+}
+
+#[derive(Queryable, Identifiable, Associations, Selectable, Serialize)]
+#[diesel(belongs_to(Product))]
+#[diesel(table_name = product_store_prices)]
+pub struct ProductStorePrice {
+    pub store_id: i32,
+    pub product_id: i32,
+    pub price: f32,
+    pub created_date: NaiveDate,
+    pub id: i32,
+}
+
+#[derive(Deserialize)]
+pub struct ProductFilter {
+    category_id: Option<i32>,
+    min_price: Option<f32>,
+    max_price: Option<f32>,
+}
+
+#[derive(Serialize)]
+pub struct ProductDTO {
+    product: Product,
+    prices: Vec<ProductStorePrice>,
+}
+
+impl Product {
+    pub fn get_products_by_filter(
+        conn: &mut PgConnection,
+        filter: ProductFilter,
+    ) -> Vec<ProductDTO> {
+        let mut products_query = products::table.select(Product::as_select()).into_boxed();
+
+        if let Some(_category_id) = filter.category_id {
+            products_query = products_query.filter(category_id.eq(_category_id));
+        }
+
+        let filtered_products = products_query.load::<Product>(conn).unwrap();
+
+        let mut prices_query = ProductStorePrice::belonging_to(&filtered_products)
+            .select(ProductStorePrice::as_select())
+            .into_boxed();
+        if let Some(min_price) = filter.min_price {
+            prices_query = prices_query.filter(price.ge(min_price))
+        }
+
+        if let Some(max_price) = filter.max_price {
+            prices_query = prices_query.filter(price.le(max_price))
+        }
+
+        let filtered_prices = prices_query.load::<ProductStorePrice>(conn).unwrap();
+
+        filtered_prices
+            .grouped_by(&filtered_products)
+            .into_iter()
+            .zip(filtered_products)
+            .map(|(prices, product)| ProductDTO { product, prices })
+            .collect::<Vec<ProductDTO>>()
+    }
+}
