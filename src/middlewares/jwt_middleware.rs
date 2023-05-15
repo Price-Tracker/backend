@@ -1,12 +1,12 @@
 use core::fmt;
 use std::future::{ready, Ready};
 
+use crate::config::app::Config;
 use actix_web::error::ErrorUnauthorized;
 use actix_web::{dev::Payload, Error as ActixWebError};
 use actix_web::{http, web, FromRequest, HttpRequest};
 use jsonwebtoken::{decode, DecodingKey, Validation};
-use serde::{Serialize, Deserialize};
-use crate::config::app::Config;
+use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize)]
 struct ErrorResponse {

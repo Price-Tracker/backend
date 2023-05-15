@@ -1,14 +1,14 @@
-use actix_web::{HttpResponse, ResponseError};
-use actix_web::http::StatusCode;
-use deadpool_diesel::{PoolError};
-use derive_more::{Display, From};
 use crate::models::response::ResponseBody;
+use actix_web::http::StatusCode;
+use actix_web::{HttpResponse, ResponseError};
+use deadpool_diesel::PoolError;
+use derive_more::{Display, From};
 
 #[derive(Display, From, Debug)]
 pub enum MyError {
     NotFound,
     PoolError(PoolError),
-    UnknownError
+    UnknownError,
 }
 impl std::error::Error for MyError {}
 

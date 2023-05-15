@@ -1,6 +1,6 @@
-use serde::{Serialize, Deserialize};
-use utoipa::ToSchema;
 use crate::models::user_tokens::UserTokensDTO;
+use serde::{Deserialize, Serialize};
+use utoipa::ToSchema;
 
 #[derive(Debug, Serialize, Deserialize, ToSchema)]
 #[aliases(

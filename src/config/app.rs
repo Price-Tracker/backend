@@ -1,11 +1,11 @@
-use std::env;
-use actix_cors::Cors;
-use actix_web::{http, web};
-use utoipa::{OpenApi, openapi};
-use crate::models::user::{LoginDTO, UserDTO};
-use crate::models::user_tokens::{UserTokensDTO, UserRefreshTokenDTO};
 use crate::api::*;
 use crate::models::response::ResponseTokens;
+use crate::models::user::{LoginDTO, UserDTO};
+use crate::models::user_tokens::{UserRefreshTokenDTO, UserTokensDTO};
+use actix_cors::Cors;
+use actix_web::{http, web};
+use std::env;
+use utoipa::{openapi, OpenApi};
 
 #[derive(Debug, Clone)]
 pub struct Config {
@@ -24,7 +24,8 @@ impl Config {
         let jwt_secret = env::var("JWT_SECRET").expect("JWT_SECRET must be set");
         let jwt_expires_in_secs = env::var("JWT_EXPIRES_IN_SECS")
             .expect("JWT_EXPIRES_IN_SECS must be set")
-            .parse::<i32>().unwrap();
+            .parse::<i32>()
+            .unwrap();
         Config {
             app_url,
             database_url,
@@ -47,15 +48,13 @@ pub fn get_openapi() -> openapi::OpenApi {
             account_controller::refresh_token,
             ping_controller::ping
         ),
-        components(
-            schemas(
-                UserRefreshTokenDTO,
-                UserTokensDTO,
-                LoginDTO,
-                UserDTO,
-                ResponseTokens
-            )
-        )
+        components(schemas(
+            UserRefreshTokenDTO,
+            UserTokensDTO,
+            LoginDTO,
+            UserDTO,
+            ResponseTokens
+        ))
     )]
     struct ApiDoc;
 
@@ -71,8 +70,8 @@ pub fn configure_services(cfg: &mut web::ServiceConfig) {
                 web::scope("/user")
                     .service(account_controller::signup)
                     .service(account_controller::login)
-                    .service(account_controller::refresh_token)
+                    .service(account_controller::refresh_token),
             )
-            .service(ping_controller::ping)
+            .service(ping_controller::ping),
     );
 }

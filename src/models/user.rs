@@ -1,15 +1,15 @@
-use actix_web::web::Data;
-use argon2::{Argon2, PasswordHash, PasswordHasher, PasswordVerifier};
-use argon2::password_hash::rand_core::OsRng;
-use argon2::password_hash::SaltString;
-use chrono::NaiveDate;
-use crate::schema::users::{self, dsl::*};
-use diesel::prelude::*;
-use log::info;
-use serde::{Serialize, Deserialize};
-use utoipa::ToSchema;
 use crate::config::app::Config;
 use crate::models::user_tokens::{UserRefreshTokenDTO, UserToken, UserTokensDTO};
+use crate::schema::users::{self, dsl::*};
+use actix_web::web::Data;
+use argon2::password_hash::rand_core::OsRng;
+use argon2::password_hash::SaltString;
+use argon2::{Argon2, PasswordHash, PasswordHasher, PasswordVerifier};
+use chrono::NaiveDate;
+use diesel::prelude::*;
+use log::info;
+use serde::{Deserialize, Serialize};
+use utoipa::ToSchema;
 
 #[derive(Identifiable, Queryable, Clone)]
 pub struct User {
@@ -39,44 +39,65 @@ pub struct LoginDTO {
 impl User {
     pub fn signup(conn: &mut PgConnection, user: UserDTO) -> Result<String, String> {
         if Self::find_user_by_login(conn, &user.login).is_err()
-            && Self::find_user_by_email(conn, &user.email).is_err() {
+            && Self::find_user_by_email(conn, &user.email).is_err()
+        {
             let salt = SaltString::generate(&mut OsRng);
             let hashed_password = Argon2::default()
                 .hash_password(user.password.as_bytes(), &salt)
                 .expect("Error while hashing password")
                 .to_string();
 
-            info!("Hashed password: {}, len: {}", hashed_password, hashed_password.len());
+            info!(
+                "Hashed password: {}, len: {}",
+                hashed_password,
+                hashed_password.len()
+            );
 
             let user = UserDTO {
                 password: hashed_password,
                 ..user
             };
 
-            diesel::insert_into(users).values(user).execute(conn).unwrap();
+            diesel::insert_into(users)
+                .values(user)
+                .execute(conn)
+                .unwrap();
 
             Ok("Signup successfully".to_string())
         } else {
-            Err(format!("Login '{}' or Email '{}' is already registered", &user.login, &user.email))
+            Err(format!(
+                "Login '{}' or Email '{}' is already registered",
+                &user.login, &user.email
+            ))
         }
     }
 
-    pub fn login(conn: &mut PgConnection, login_cred: LoginDTO, config: Data<Config>) -> Result<UserTokensDTO, String> {
+    pub fn login(
+        conn: &mut PgConnection,
+        login_cred: LoginDTO,
+        config: Data<Config>,
+    ) -> Result<UserTokensDTO, String> {
         if let Ok(fetched_user) = users
             .filter(login.eq(&login_cred.login_or_email))
             .or_filter(email.eq(&login_cred.login_or_email))
-            .get_result::<User>(conn) {
+            .get_result::<User>(conn)
+        {
             info!("Found user with id {}", fetched_user.id);
             if let Ok(parsed_hash) = PasswordHash::new(&fetched_user.password) {
-                if Argon2::default().verify_password(login_cred.password.as_bytes(), &parsed_hash).is_ok() {
+                if Argon2::default()
+                    .verify_password(login_cred.password.as_bytes(), &parsed_hash)
+                    .is_ok()
+                {
                     info!("Password for user id {} is right", fetched_user.id);
 
-                    let access_token = UserToken::generate_access_token(fetched_user.clone(), config);
-                    let refresh_token = UserToken::generate_refresh_token(conn, fetched_user.clone());
+                    let access_token =
+                        UserToken::generate_access_token(fetched_user.clone(), config);
+                    let refresh_token =
+                        UserToken::generate_refresh_token(conn, fetched_user.clone());
 
                     let user_tokens = UserTokensDTO {
                         access_token,
-                        refresh_token
+                        refresh_token,
                     };
 
                     return Ok(user_tokens);
@@ -85,13 +106,22 @@ impl User {
                 }
             }
         } else {
-            info!("Can't find user with login or email {}", login_cred.login_or_email);
+            info!(
+                "Can't find user with login or email {}",
+                login_cred.login_or_email
+            );
         }
         Err("Login, email or password is wrong!".to_string())
     }
 
-    pub fn refresh_token(conn: &mut PgConnection, user_refresh_token: UserRefreshTokenDTO, config: Data<Config>) -> Result<UserTokensDTO, String> {
-        if let Ok(user_token) = UserToken::find_refresh_token(conn, user_refresh_token.refresh_token.clone()) {
+    pub fn refresh_token(
+        conn: &mut PgConnection,
+        user_refresh_token: UserRefreshTokenDTO,
+        config: Data<Config>,
+    ) -> Result<UserTokensDTO, String> {
+        if let Ok(user_token) =
+            UserToken::find_refresh_token(conn, user_refresh_token.refresh_token.clone())
+        {
             let user_tokens = UserToken::refresh_tokens(conn, user_token, config);
 
             Ok(user_tokens)

@@ -1,10 +1,10 @@
-use actix_web::{Result, HttpResponse, web, post};
-use deadpool_diesel::postgres::Pool;
 use crate::config::app::Config;
 use crate::models::response::ResponseBody;
 use crate::models::user::{LoginDTO, UserDTO};
 use crate::models::user_tokens::UserRefreshTokenDTO;
 use crate::services::account_service;
+use actix_web::{post, web, HttpResponse, Result};
+use deadpool_diesel::postgres::Pool;
 
 #[utoipa::path(
     request_body = UserDTO,
@@ -31,14 +31,14 @@ pub async fn signup(user_dto: web::Json<UserDTO>, pool: web::Data<Pool>) -> Resu
     context_path = "/api/user"
 )]
 #[post("/login")]
-pub async fn login(login: web::Json<LoginDTO>, pool: web::Data<Pool>, config: web::Data<Config>) -> Result<HttpResponse> {
+pub async fn login(
+    login: web::Json<LoginDTO>,
+    pool: web::Data<Pool>,
+    config: web::Data<Config>,
+) -> Result<HttpResponse> {
     match account_service::login(login.0, &pool, config).await {
-        Ok(tokens) => {
-            Ok(HttpResponse::Ok()
-                .json(ResponseBody::new("success", tokens))
-            )
-        }
-        Err(err) => { Ok(err.response()) }
+        Ok(tokens) => Ok(HttpResponse::Ok().json(ResponseBody::new("success", tokens))),
+        Err(err) => Ok(err.response()),
     }
 }
 
@@ -51,13 +51,13 @@ pub async fn login(login: web::Json<LoginDTO>, pool: web::Data<Pool>, config: we
     context_path = "/api/user"
 )]
 #[post("/refresh-token")]
-pub async fn refresh_token(user_refresh_token: web::Json<UserRefreshTokenDTO>, pool: web::Data<Pool>, config: web::Data<Config>) -> Result<HttpResponse> {
+pub async fn refresh_token(
+    user_refresh_token: web::Json<UserRefreshTokenDTO>,
+    pool: web::Data<Pool>,
+    config: web::Data<Config>,
+) -> Result<HttpResponse> {
     match account_service::refresh_token(user_refresh_token.0, &pool, config).await {
-        Ok(tokens) => {
-            Ok(HttpResponse::Ok()
-                .json(ResponseBody::new("success", tokens))
-            )
-        }
-        Err(err) => { Ok(err.response()) }
+        Ok(tokens) => Ok(HttpResponse::Ok().json(ResponseBody::new("success", tokens))),
+        Err(err) => Ok(err.response()),
     }
 }

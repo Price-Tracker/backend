@@ -6,11 +6,11 @@ mod models;
 mod schema;
 mod services;
 
-use actix_web::{App, HttpServer, middleware, web};
+use crate::config::app::Config;
+use actix_web::{middleware, web, App, HttpServer};
 use dotenvy::dotenv;
 use log::info;
 use utoipa_swagger_ui::SwaggerUi;
-use crate::config::app::Config;
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()> {
@@ -28,17 +28,19 @@ async fn main() -> std::io::Result<()> {
 
     let openapi = config::app::get_openapi();
 
-    HttpServer::new(move || App::new()
-        .wrap(middleware::Logger::default())
-        .wrap(config::app::get_cors())
-        .app_data(web::Data::new(pool.clone()))
-        .app_data(web::Data::new(config.clone()))
-        .service(
-            SwaggerUi::new("/api/swagger-ui/{_:.*}").url("/api/api-docs/openapi.json", openapi.clone())
-        )
-        .configure(config::app::configure_services),
-    )
-        .bind(app_url)?
-        .run()
-        .await
+    HttpServer::new(move || {
+        App::new()
+            .wrap(middleware::Logger::default())
+            .wrap(config::app::get_cors())
+            .app_data(web::Data::new(pool.clone()))
+            .app_data(web::Data::new(config.clone()))
+            .service(
+                SwaggerUi::new("/api/swagger-ui/{_:.*}")
+                    .url("/api/api-docs/openapi.json", openapi.clone()),
+            )
+            .configure(config::app::configure_services)
+    })
+    .bind(app_url)?
+    .run()
+    .await
 }

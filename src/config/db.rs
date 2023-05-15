@@ -8,10 +8,7 @@ pub const MIGRATIONS: EmbeddedMigrations = embed_migrations!();
 pub async fn get_connection_pool(db_url: &str) -> Pool {
     info!("Creating connections pool...");
     let manager = Manager::new(db_url, Runtime::Tokio1);
-    let pool = Pool::builder(manager)
-        .max_size(32)
-        .build()
-        .unwrap();
+    let pool = Pool::builder(manager).max_size(32).build().unwrap();
 
     info!("Connection pool has been created successfully.");
     pool
@@ -19,11 +16,11 @@ pub async fn get_connection_pool(db_url: &str) -> Pool {
 
 pub async fn run_migrations(pool: Pool) {
     info!("Preparing to run db migrations...");
-    let conn = pool.get().await.expect("Failed to get connection from the pool.");
-    conn
-        .interact(|conn| conn
-            .run_pending_migrations(MIGRATIONS)
-            .map(|_| ()))
+    let conn = pool
+        .get()
+        .await
+        .expect("Failed to get connection from the pool.");
+    conn.interact(|conn| conn.run_pending_migrations(MIGRATIONS).map(|_| ()))
         .await
         .unwrap()
         .unwrap();
