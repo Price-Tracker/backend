@@ -1,13 +1,11 @@
-use chrono::NaiveDate;
+use chrono::{NaiveDate, NaiveDateTime};
 use diesel::prelude::*;
-use diesel::sql_types::Float;
 use serde::{Deserialize, Serialize};
 use std::cmp::Ordering;
+use std::collections::HashSet;
 
 use crate::schema::product_store_prices::{self, dsl::*};
 use crate::schema::products::{self, dsl::*};
-
-sql_function!(fn array_agg(x: Float) -> Array<Float>);
 
 #[derive(Queryable, Identifiable, Selectable, Serialize)]
 #[diesel(table_name = products)]
@@ -28,7 +26,7 @@ pub struct ProductStorePrice {
     pub store_id: i32,
     pub product_id: i32,
     pub price: f32,
-    pub created_date: NaiveDate,
+    pub created_date: NaiveDateTime,
     pub id: i32,
 }
 
@@ -48,6 +46,20 @@ pub struct ProductDTO {
 }
 
 impl Product {
+    fn find_latest_price(
+        conn: &mut PgConnection,
+        _store_id: i32,
+        _product_id: i32,
+    ) -> Option<ProductStorePrice> {
+        product_store_prices
+            .filter(store_id.eq(store_id))
+            .filter(product_id.eq(product_id))
+            .order(product_store_prices::created_date.desc())
+            .first::<ProductStorePrice>(conn)
+            .optional()
+            .expect("Error loading latest price")
+    }
+
     pub fn get_products_by_filter(
         conn: &mut PgConnection,
         filter: ProductFilter,
@@ -86,18 +98,24 @@ impl Product {
             .into_iter()
             .zip(filtered_products)
             .map(|(prices, product)| {
-                let min_price = prices
+                let unique_store_ids: HashSet<i32> = prices.iter().map(|p| p.store_id).collect();
+                let latest_prices: Vec<ProductStorePrice> = unique_store_ids
+                    .iter()
+                    .filter_map(|_store_id| Self::find_latest_price(conn, *_store_id, product.id))
+                    .collect();
+
+                let min_price = latest_prices
                     .iter()
                     .min_by(|a, b| a.price.partial_cmp(&b.price).unwrap_or(Ordering::Equal))
                     .map(|p| p.price);
-                let max_price = prices
+                let max_price = latest_prices
                     .iter()
                     .max_by(|a, b| a.price.partial_cmp(&b.price).unwrap_or(Ordering::Equal))
                     .map(|p| p.price);
 
                 ProductDTO {
                     product,
-                    prices,
+                    prices: latest_prices,
                     min_price,
                     max_price,
                 }

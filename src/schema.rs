@@ -45,7 +45,7 @@ diesel::table! {
         store_id -> Int4,
         product_id -> Int4,
         price -> Float4,
-        created_date -> Date,
+        created_date -> Timestamp,
         id -> Int4,
     }
 }
