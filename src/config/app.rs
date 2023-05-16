@@ -76,6 +76,7 @@ pub fn configure_services(cfg: &mut web::ServiceConfig) {
             )
             .service(ping_controller::ping)
             .service(category_controller::categories)
-            .service(product_controller::products),
+            .service(product_controller::products)
+            .service(product_controller::product),
     );
 }

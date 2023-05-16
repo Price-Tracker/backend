@@ -17,6 +17,23 @@ pub async fn products(
     filters: web::Query<ProductFilter>,
     pool: web::Data<Pool>,
 ) -> Result<HttpResponse> {
-    let result = product_service::products(filters, &pool).await;
-    Ok(HttpResponse::Ok().json(ResponseBody::new("success", result)))
+    match product_service::products(filters, &pool).await {
+        Ok(products) => Ok(HttpResponse::Ok().json(ResponseBody::new("success", products))),
+        Err(err) => Ok(err.response()),
+    }
+}
+
+#[utoipa::path(
+    responses(
+        (status = 200, description = "Got a product", body = String),
+        (status = 400, description = "Unknown error"),
+    ),
+        context_path = "/api"
+)]
+#[get("/product/{id}")]
+pub async fn product(product_id: web::Path<i32>, pool: web::Data<Pool>) -> Result<HttpResponse> {
+    match product_service::product(product_id, &pool).await {
+        Ok(product) => Ok(HttpResponse::Ok().json(ResponseBody::new("success", product))),
+        Err(err) => Ok(err.response()),
+    }
 }

@@ -60,10 +60,38 @@ impl Product {
             .expect("Error loading latest price")
     }
 
+    fn map_product_and_prices(
+        conn: &mut PgConnection,
+        prices: Vec<ProductStorePrice>,
+        product: Product,
+    ) -> ProductDTO {
+        let unique_store_ids: HashSet<i32> = prices.iter().map(|p| p.store_id).collect();
+        let latest_prices: Vec<ProductStorePrice> = unique_store_ids
+            .iter()
+            .filter_map(|_store_id| Self::find_latest_price(conn, *_store_id, product.id))
+            .collect();
+
+        let min_price = latest_prices
+            .iter()
+            .min_by(|a, b| a.price.partial_cmp(&b.price).unwrap_or(Ordering::Equal))
+            .map(|p| p.price);
+        let max_price = latest_prices
+            .iter()
+            .max_by(|a, b| a.price.partial_cmp(&b.price).unwrap_or(Ordering::Equal))
+            .map(|p| p.price);
+
+        ProductDTO {
+            product,
+            prices: latest_prices,
+            min_price,
+            max_price,
+        }
+    }
+
     pub fn get_products_by_filter(
         conn: &mut PgConnection,
         filter: ProductFilter,
-    ) -> Vec<ProductDTO> {
+    ) -> QueryResult<Vec<ProductDTO>> {
         let mut products_query = products::table.select(Product::as_select()).into_boxed();
 
         if let Some(_category_id) = filter.category_id {
@@ -85,41 +113,31 @@ impl Product {
 
         products_query = products_query.filter(products::id.eq_any(product_ids_with_prices));
 
-        let filtered_products = products_query.load::<Product>(conn).unwrap();
+        let filtered_products = products_query.load::<Product>(conn)?;
 
         let prices_query = ProductStorePrice::belonging_to(&filtered_products)
             .select(ProductStorePrice::as_select())
             .into_boxed();
 
-        let filtered_prices = prices_query.load::<ProductStorePrice>(conn).unwrap();
+        let filtered_prices = prices_query.load::<ProductStorePrice>(conn)?;
 
-        filtered_prices
+        Ok(filtered_prices
             .grouped_by(&filtered_products)
             .into_iter()
             .zip(filtered_products)
-            .map(|(prices, product)| {
-                let unique_store_ids: HashSet<i32> = prices.iter().map(|p| p.store_id).collect();
-                let latest_prices: Vec<ProductStorePrice> = unique_store_ids
-                    .iter()
-                    .filter_map(|_store_id| Self::find_latest_price(conn, *_store_id, product.id))
-                    .collect();
+            .map(|(prices, product)| Self::map_product_and_prices(conn, prices, product))
+            .collect::<Vec<ProductDTO>>())
+    }
 
-                let min_price = latest_prices
-                    .iter()
-                    .min_by(|a, b| a.price.partial_cmp(&b.price).unwrap_or(Ordering::Equal))
-                    .map(|p| p.price);
-                let max_price = latest_prices
-                    .iter()
-                    .max_by(|a, b| a.price.partial_cmp(&b.price).unwrap_or(Ordering::Equal))
-                    .map(|p| p.price);
+    pub fn get_product(conn: &mut PgConnection, _product_id: i32) -> QueryResult<ProductDTO> {
+        let product = products
+            .filter(products::id.eq(_product_id))
+            .first::<Product>(conn)?;
 
-                ProductDTO {
-                    product,
-                    prices: latest_prices,
-                    min_price,
-                    max_price,
-                }
-            })
-            .collect::<Vec<ProductDTO>>()
+        let prices = ProductStorePrice::belonging_to(&product)
+            .select(ProductStorePrice::as_select())
+            .load::<ProductStorePrice>(conn)?;
+
+        Ok(Self::map_product_and_prices(conn, prices, product))
     }
 }
