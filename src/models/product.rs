@@ -52,8 +52,8 @@ impl Product {
         _product_id: i32,
     ) -> Option<ProductStorePrice> {
         product_store_prices
-            .filter(store_id.eq(store_id))
-            .filter(product_id.eq(product_id))
+            .filter(store_id.eq(_store_id))
+            .filter(product_id.eq(_product_id))
             .order(product_store_prices::created_date.desc())
             .first::<ProductStorePrice>(conn)
             .optional()
