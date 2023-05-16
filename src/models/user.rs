@@ -1,11 +1,15 @@
 use crate::config::app::Config;
+use crate::models::product::Product;
 use crate::models::user_tokens::{UserRefreshTokenDTO, UserToken, UserTokensDTO};
+use crate::schema::user_product_history::user_id;
+use crate::schema::user_product_history::{self, dsl::*};
 use crate::schema::users::{self, dsl::*};
 use actix_web::web::Data;
 use argon2::password_hash::rand_core::OsRng;
 use argon2::password_hash::SaltString;
 use argon2::{Argon2, PasswordHash, PasswordHasher, PasswordVerifier};
-use chrono::NaiveDate;
+use chrono::{NaiveDate, NaiveDateTime};
+use diesel::insert_into;
 use diesel::prelude::*;
 use log::info;
 use serde::{Deserialize, Serialize};
@@ -20,6 +24,15 @@ pub struct User {
     pub password: String,
     pub created_date: NaiveDate,
     pub updated_date: NaiveDate,
+}
+
+#[derive(Queryable, Associations, Selectable, Insertable, Serialize)]
+#[diesel(belongs_to(Product))]
+#[diesel(table_name = user_product_history)]
+pub struct UserProductHistory {
+    pub user_id: i32,
+    pub product_id: i32,
+    pub created_date: NaiveDateTime,
 }
 
 #[derive(Insertable, Serialize, Deserialize, ToSchema)]
@@ -128,6 +141,16 @@ impl User {
         } else {
             Err("Refresh token not found!".to_string())
         }
+    }
+
+    pub fn add_product_to_history(
+        conn: &mut PgConnection,
+        _user_id: i32,
+        _product_id: i32,
+    ) -> QueryResult<usize> {
+        insert_into(user_product_history)
+            .values((user_id.eq(_user_id), product_id.eq(_product_id)))
+            .execute(conn)
     }
 
     pub fn find_user_by_id(conn: &mut PgConnection, _id: i32) -> QueryResult<User> {

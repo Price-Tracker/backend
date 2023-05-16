@@ -134,6 +134,8 @@ diesel::table! {
 diesel::table! {
     user_product_history (user_id) {
         user_id -> Int4,
+        product_id -> Int4,
+        created_date -> Timestamp,
     }
 }
 
@@ -221,6 +223,7 @@ diesel::joinable!(stores -> regions (region_id));
 diesel::joinable!(stores -> retail_chains (retail_chain_id));
 diesel::joinable!(user_access -> users (user_id));
 diesel::joinable!(user_notification_settings -> users (user_id));
+diesel::joinable!(user_product_history -> products (product_id));
 diesel::joinable!(user_product_review -> products (product_id));
 diesel::joinable!(user_product_review -> stores (store_id));
 diesel::joinable!(user_product_review -> users (user_id));
