@@ -183,7 +183,7 @@ create table products
     id           serial,
     category_id  serial,
     name         varchar(80)        not null,
-    description  varchar(120),
+    description  varchar,
     picture_url  varchar,
     created_date date default now() not null,
     updated_date date default now() not null,
