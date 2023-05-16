@@ -4,6 +4,7 @@ use serde::{Deserialize, Serialize};
 use std::cmp::Ordering;
 use std::collections::HashSet;
 
+use crate::models::store::Store;
 use crate::schema::product_store_prices::{self, dsl::*};
 use crate::schema::products::{self, dsl::*};
 
@@ -38,9 +39,16 @@ pub struct ProductFilter {
 }
 
 #[derive(Serialize)]
+pub struct ProductStorePriceDTO {
+    pub store_id: i32,
+    pub store_name: String,
+    pub price: f32,
+}
+
+#[derive(Serialize)]
 pub struct ProductDTO {
     product: Product,
-    prices: Vec<ProductStorePrice>,
+    prices: Vec<ProductStorePriceDTO>,
     min_price: Option<f32>,
     max_price: Option<f32>,
 }
@@ -66,9 +74,16 @@ impl Product {
         product: Product,
     ) -> ProductDTO {
         let unique_store_ids: HashSet<i32> = prices.iter().map(|p| p.store_id).collect();
-        let latest_prices: Vec<ProductStorePrice> = unique_store_ids
+        let latest_prices: Vec<ProductStorePriceDTO> = unique_store_ids
             .iter()
             .filter_map(|_store_id| Self::find_latest_price(conn, *_store_id, product.id))
+            .collect::<Vec<ProductStorePrice>>()
+            .into_iter() // conn cannot be accessed simultaneously
+            .map(|_price| ProductStorePriceDTO {
+                store_id: _price.store_id,
+                store_name: Store::get_store_name_by_id(conn, _price.store_id).unwrap(),
+                price: _price.price,
+            })
             .collect();
 
         let min_price = latest_prices
