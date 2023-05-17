@@ -49,7 +49,7 @@ pub struct LoginDTO {
     pub password: String,
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, ToSchema)]
 pub struct HistoryDTO {
     product_id: i32,
 }

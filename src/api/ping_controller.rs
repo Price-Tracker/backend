@@ -6,7 +6,7 @@ use diesel::{select, IntoSql, RunQueryDsl};
 
 #[utoipa::path(
     responses(
-        (status = 200, description = "Ping!", body = String),
+        (status = 200, description = "Got ping response", body = String),
         (status = 400, description = "Unknown error"),
     ),
     context_path = "/api"

@@ -8,7 +8,7 @@ use deadpool_diesel::postgres::Pool;
         (status = 200, description = "Got a category list", body = Vec<Category>),
         (status = 400, description = "Unknown error"),
     ),
-        context_path = "/api"
+    context_path = "/api"
     )]
 #[get("/categories")]
 pub async fn categories(pool: web::Data<Pool>) -> Result<HttpResponse> {

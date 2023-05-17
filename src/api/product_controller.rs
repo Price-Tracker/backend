@@ -5,8 +5,9 @@ use actix_web::{get, web, HttpResponse, Result};
 use deadpool_diesel::postgres::Pool;
 
 #[utoipa::path(
+    params(ProductFilter),
     responses(
-        (status = 200, description = "Got a product list", body = String),
+        (status = 200, description = "Got a product list", body = Vec<ProductDTO>),
         (status = 400, description = "Unknown error"),
     ),
         context_path = "/api"
@@ -24,7 +25,7 @@ pub async fn products(
 
 #[utoipa::path(
     responses(
-        (status = 200, description = "Got a product", body = String),
+        (status = 200, description = "Got a product by id", body = ProductDTO),
         (status = 400, description = "Unknown error"),
     ),
         context_path = "/api"

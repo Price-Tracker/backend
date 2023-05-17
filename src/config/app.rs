@@ -1,7 +1,8 @@
 use crate::api::*;
 use crate::models::category::Category;
+use crate::models::product::{Product, ProductDTO, ProductStorePriceDTO};
 use crate::models::response::ResponseTokens;
-use crate::models::user::{LoginDTO, UserDTO};
+use crate::models::user::{HistoryDTO, LoginDTO, UserDTO};
 use crate::models::user_tokens::{UserRefreshTokenDTO, UserTokensDTO};
 use actix_cors::Cors;
 use actix_web::web;
@@ -47,13 +48,21 @@ pub fn get_openapi() -> openapi::OpenApi {
             account_controller::signup,
             account_controller::login,
             account_controller::refresh_token,
-            ping_controller::ping
+            category_controller::categories,
+            history_controller::add_to_history,
+            ping_controller::ping,
+            product_controller::products,
+            product_controller::product
         ),
         components(schemas(
             UserRefreshTokenDTO,
             UserTokensDTO,
             LoginDTO,
             UserDTO,
+            HistoryDTO,
+            ProductDTO,
+            ProductStorePriceDTO,
+            Product,
             ResponseTokens,
             Category
         ))

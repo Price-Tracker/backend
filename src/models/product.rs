@@ -3,12 +3,13 @@ use diesel::prelude::*;
 use serde::{Deserialize, Serialize};
 use std::cmp::Ordering;
 use std::collections::HashSet;
+use utoipa::{IntoParams, ToSchema};
 
 use crate::models::store::Store;
 use crate::schema::product_store_prices::{self, dsl::*};
 use crate::schema::products::{self, dsl::*};
 
-#[derive(Queryable, Identifiable, Selectable, Serialize)]
+#[derive(Queryable, Identifiable, Selectable, Serialize, ToSchema)]
 #[diesel(table_name = products)]
 pub struct Product {
     pub id: i32,
@@ -16,7 +17,9 @@ pub struct Product {
     pub name: String,
     pub description: Option<String>,
     pub picture_url: Option<String>,
+    #[schema(value_type = String, format = Date)]
     pub created_date: NaiveDate,
+    #[schema(value_type = String, format = Date)]
     pub updated_date: NaiveDate,
 }
 
@@ -31,21 +34,22 @@ pub struct ProductStorePrice {
     pub id: i32,
 }
 
-#[derive(Deserialize)]
+#[derive(Deserialize, IntoParams)]
 pub struct ProductFilter {
     category_id: Option<i32>,
     min_price: Option<f32>,
     max_price: Option<f32>,
 }
 
-#[derive(Serialize)]
+#[derive(Serialize, ToSchema)]
 pub struct ProductStorePriceDTO {
     pub store_id: i32,
     pub store_name: String,
     pub price: f32,
 }
 
-#[derive(Serialize)]
+// TODO: Replace Product struct
+#[derive(Serialize, ToSchema)]
 pub struct ProductDTO {
     product: Product,
     prices: Vec<ProductStorePriceDTO>,
