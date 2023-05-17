@@ -154,7 +154,7 @@ impl User {
     }
 
     pub fn find_user_by_id(conn: &mut PgConnection, _id: i32) -> QueryResult<User> {
-        users.filter(id.eq(_id)).get_result::<User>(conn)
+        users.filter(users::id.eq(_id)).get_result::<User>(conn)
     }
 
     pub fn find_user_by_login(conn: &mut PgConnection, _login: &str) -> QueryResult<User> {

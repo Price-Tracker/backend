@@ -132,10 +132,11 @@ diesel::table! {
 }
 
 diesel::table! {
-    user_product_history (user_id) {
+    user_product_history (id) {
         user_id -> Int4,
         product_id -> Int4,
         created_date -> Timestamp,
+        id -> Int4,
     }
 }
 
