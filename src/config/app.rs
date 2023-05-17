@@ -78,6 +78,6 @@ pub fn configure_services(cfg: &mut web::ServiceConfig) {
             .service(category_controller::categories)
             .service(product_controller::products)
             .service(product_controller::product)
-            .service(history_controller::add_product_to_history),
+            .service(history_controller::add_to_history),
     );
 }

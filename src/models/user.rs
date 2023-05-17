@@ -49,6 +49,11 @@ pub struct LoginDTO {
     pub password: String,
 }
 
+#[derive(Deserialize)]
+pub struct HistoryDTO {
+    product_id: i32,
+}
+
 impl User {
     pub fn signup(conn: &mut PgConnection, user: UserDTO) -> Result<String, String> {
         if Self::find_user_by_login(conn, &user.login).is_err()
@@ -71,10 +76,7 @@ impl User {
                 ..user
             };
 
-            diesel::insert_into(users)
-                .values(user)
-                .execute(conn)
-                .unwrap();
+            insert_into(users).values(user).execute(conn).unwrap();
 
             Ok("Signup successfully".to_string())
         } else {
@@ -143,13 +145,14 @@ impl User {
         }
     }
 
-    pub fn add_product_to_history(
+    pub fn add_to_history(
         conn: &mut PgConnection,
         _user_id: i32,
-        _product_id: i32,
+        history_dto: HistoryDTO,
     ) -> QueryResult<usize> {
+        // TODO: rework when new fields will be added
         insert_into(user_product_history)
-            .values((user_id.eq(_user_id), product_id.eq(_product_id)))
+            .values((user_id.eq(_user_id), product_id.eq(history_dto.product_id)))
             .execute(conn)
     }
 
