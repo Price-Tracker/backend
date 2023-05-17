@@ -1,5 +1,4 @@
 use crate::errors::MyError;
-use crate::middlewares::jwt_middleware::TokenClaims;
 use actix_web::{get, web, Error, HttpResponse};
 use deadpool_diesel::postgres::Pool;
 use diesel::sql_types::Text;
@@ -13,7 +12,7 @@ use diesel::{select, IntoSql, RunQueryDsl};
     context_path = "/api"
 )]
 #[get("/ping")]
-pub async fn ping(db_pool: web::Data<Pool>, _: TokenClaims) -> Result<HttpResponse, Error> {
+pub async fn ping(db_pool: web::Data<Pool>) -> Result<HttpResponse, Error> {
     let conn = db_pool.get().await.map_err(MyError::PoolError)?;
 
     let result = conn
