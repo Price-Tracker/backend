@@ -3,7 +3,6 @@ use crate::models::category::Category;
 use crate::models::response::ResponseTokens;
 use crate::models::user::{LoginDTO, UserDTO};
 use crate::models::user_tokens::{UserRefreshTokenDTO, UserTokensDTO};
-use crate::services::history_service;
 use actix_cors::Cors;
 use actix_web::web;
 use std::env;

@@ -1,10 +1,8 @@
-use crate::middlewares::jwt_middleware::TokenClaims;
-use actix_web::{get, post, web, HttpResponse, Result};
-use deadpool_diesel::postgres::Pool;
-
 use crate::models::product::ProductFilter;
 use crate::models::response::ResponseBody;
 use crate::services::product_service;
+use actix_web::{get, web, HttpResponse, Result};
+use deadpool_diesel::postgres::Pool;
 
 #[utoipa::path(
     responses(

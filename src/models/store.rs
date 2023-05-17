@@ -1,10 +1,7 @@
-use chrono::{NaiveDate, NaiveDateTime};
-use diesel::prelude::*;
-use serde::{Deserialize, Serialize};
-use std::cmp::Ordering;
-use std::collections::HashSet;
-
 use crate::schema::stores::{self, dsl::*};
+use chrono::NaiveDateTime;
+use diesel::prelude::*;
+use serde::Serialize;
 
 #[derive(Queryable, Identifiable, Selectable, Serialize)]
 #[diesel(table_name = stores)]
