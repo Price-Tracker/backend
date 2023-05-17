@@ -38,22 +38,3 @@ pub async fn product(product_id: web::Path<i32>, pool: web::Data<Pool>) -> Resul
         Err(err) => Ok(err.response()),
     }
 }
-
-#[utoipa::path(
-    responses(
-        (status = 200, description = "Got a product", body = String),
-        (status = 400, description = "Unknown error"),
-    ),
-    context_path = "/api"
-)]
-#[post("/history/product/{id}")]
-pub async fn add_product_to_history(
-    product_id: web::Path<i32>,
-    token_claims: TokenClaims,
-    pool: web::Data<Pool>,
-) -> Result<HttpResponse> {
-    match product_service::add_product_to_history(product_id, token_claims, &pool).await {
-        Ok(_) => Ok(HttpResponse::Ok().json(ResponseBody::new("success", ""))),
-        Err(err) => Ok(err.response()),
-    }
-}

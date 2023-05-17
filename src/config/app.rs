@@ -3,6 +3,7 @@ use crate::models::category::Category;
 use crate::models::response::ResponseTokens;
 use crate::models::user::{LoginDTO, UserDTO};
 use crate::models::user_tokens::{UserRefreshTokenDTO, UserTokensDTO};
+use crate::services::history_service;
 use actix_cors::Cors;
 use actix_web::web;
 use std::env;
@@ -78,6 +79,6 @@ pub fn configure_services(cfg: &mut web::ServiceConfig) {
             .service(category_controller::categories)
             .service(product_controller::products)
             .service(product_controller::product)
-            .service(product_controller::add_product_to_history),
+            .service(history_controller::add_product_to_history),
     );
 }
