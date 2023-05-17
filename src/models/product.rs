@@ -17,9 +17,7 @@ pub struct Product {
     pub name: String,
     pub description: Option<String>,
     pub picture_url: Option<String>,
-    #[schema(value_type = String, format = Date)]
     pub created_date: NaiveDate,
-    #[schema(value_type = String, format = Date)]
     pub updated_date: NaiveDate,
 }
 
