@@ -1,3 +1,5 @@
+use crate::schema::product_stores::store_id;
+use crate::schema::product_stores::{self, dsl::*};
 use crate::schema::stores::{self, dsl::*};
 use chrono::NaiveDateTime;
 use diesel::prelude::*;
@@ -19,10 +21,20 @@ pub struct Store {
 }
 
 impl Store {
-    pub fn get_store_name_by_id(conn: &mut PgConnection, store_id: i32) -> QueryResult<String> {
+    pub fn get_store_name_by_id(conn: &mut PgConnection, _store_id: i32) -> QueryResult<String> {
         stores
             .select(name)
-            .filter(id.eq(store_id))
+            .filter(stores::id.eq(_store_id))
             .first::<String>(conn)
+    }
+
+    pub fn get_store_id_by_product_store_id(
+        conn: &mut PgConnection,
+        product_store_id: i32,
+    ) -> QueryResult<i32> {
+        product_stores
+            .select(store_id)
+            .filter(product_stores::id.eq(product_store_id))
+            .first::<i32>(conn)
     }
 }

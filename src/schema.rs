@@ -42,11 +42,10 @@ diesel::table! {
 
 diesel::table! {
     product_store_prices (id) {
-        store_id -> Int4,
-        product_id -> Int4,
         price -> Float4,
         created_date -> Timestamp,
         id -> Int4,
+        product_store_id -> Int4,
     }
 }
 
@@ -54,7 +53,6 @@ diesel::table! {
     product_stores (id) {
         id -> Int4,
         store_id -> Int4,
-        price_id -> Int4,
         product_id -> Int4,
         created_date -> Timestamp,
         updated_date -> Timestamp,
@@ -210,9 +208,7 @@ diesel::table! {
 
 diesel::joinable!(cities -> regions (region_id));
 diesel::joinable!(delivered_notifications -> user_subscribed_products (subscribe_id));
-diesel::joinable!(product_store_prices -> products (product_id));
-diesel::joinable!(product_store_prices -> stores (store_id));
-diesel::joinable!(product_stores -> product_store_prices (price_id));
+diesel::joinable!(product_store_prices -> product_stores (product_store_id));
 diesel::joinable!(product_stores -> products (product_id));
 diesel::joinable!(product_stores -> stores (store_id));
 diesel::joinable!(products -> categories (category_id));
