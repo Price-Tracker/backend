@@ -4,7 +4,6 @@ use crate::schema::product_stores::{self, dsl::*};
 use crate::schema::products::{self, dsl::*};
 use chrono::NaiveDateTime;
 use diesel::prelude::*;
-use log::info;
 use serde::{Deserialize, Serialize};
 use std::cmp::Ordering;
 use std::collections::HashSet;
@@ -156,8 +155,6 @@ impl Product {
             products_query.filter(product_stores::id.eq_any(product_store_ids_with_prices));
 
         let filtered_products = products_query.load::<Product>(conn)?;
-
-        info!("Filtered products: {:#?}", filtered_products);
 
         let filtered_product_stores = ProductStore::belonging_to(&filtered_products)
             .select(ProductStore::as_select())
