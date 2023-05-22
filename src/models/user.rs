@@ -189,6 +189,8 @@ impl User {
         Ok(user_product_history
             .select(UserProductHistory::as_select())
             .filter(user_id.eq(_user_id))
+            .limit(60) // TODO: make it configurable
+            .order(user_product_history::created_date.desc())
             .get_results(conn)?
             .into_iter()
             .map(|history| HistoryWithProductDTO {
