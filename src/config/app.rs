@@ -83,6 +83,11 @@ pub fn configure_services(cfg: &mut web::ServiceConfig) {
                     .service(account_controller::login)
                     .service(account_controller::refresh_token),
             )
+            .service(
+                web::scope("/cart")
+                    .service(cart_controller::add_to_cart)
+                    .service(cart_controller::get_cart),
+            )
             .service(ping_controller::ping)
             .service(category_controller::categories)
             .service(product_controller::products)

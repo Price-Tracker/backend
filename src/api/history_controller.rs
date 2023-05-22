@@ -7,7 +7,7 @@ use deadpool_diesel::postgres::Pool;
 
 #[utoipa::path(
     responses(
-        (status = 200, description = "Successfully added to history", body = HistoryDTO),
+        (status = 200, description = "Successfully added to history"),
         (status = 400, description = "Unknown error"),
     ),
     context_path = "/api"

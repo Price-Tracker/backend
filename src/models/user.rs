@@ -1,8 +1,9 @@
 use crate::config::app::Config;
-use crate::models::product::Product;
+use crate::models::product::{Product, ProductStore};
 use crate::models::user_tokens::{UserRefreshTokenDTO, UserToken, UserTokensDTO};
 use crate::schema::user_product_history::user_id;
 use crate::schema::user_product_history::{self, dsl::*};
+use crate::schema::user_shopping_carts::{self};
 use crate::schema::users::{self, dsl::*};
 use actix_web::web::Data;
 use argon2::password_hash::rand_core::OsRng;
@@ -36,12 +37,30 @@ pub struct UserProductHistory {
     pub created_date: NaiveDateTime,
 }
 
+#[derive(Queryable, Associations, Selectable, Insertable, Serialize)]
+#[diesel(belongs_to(ProductStore))]
+#[diesel(belongs_to(User))]
+#[diesel(table_name = user_shopping_carts)]
+pub struct UserShoppingCart {
+    pub user_id: i32,
+    pub product_store_id: i32,
+    pub quantity: i32,
+    pub created_date: NaiveDateTime,
+}
+
 #[derive(Insertable, Serialize, Deserialize, ToSchema)]
 #[diesel(table_name = users)]
 pub struct UserDTO {
     pub login: String,
     pub email: String,
     pub password: String,
+}
+
+#[derive(Insertable, Serialize, Deserialize, ToSchema)]
+#[diesel(table_name = user_shopping_carts)]
+pub struct UserShoppingCartDTO {
+    pub product_store_id: i32,
+    pub quantity: i32,
 }
 
 #[derive(Serialize, Deserialize, ToSchema)]
@@ -155,6 +174,41 @@ impl User {
         insert_into(user_product_history)
             .values((user_id.eq(_user_id), product_id.eq(history_dto.product_id)))
             .execute(conn)
+    }
+
+    pub fn add_to_cart(
+        conn: &mut PgConnection,
+        _user_id: i32,
+        cart_dto: UserShoppingCartDTO,
+    ) -> QueryResult<usize> {
+        // Ensure that this product_store exists
+        let product_store = Product::find_product_store_by_id(conn, cart_dto.product_store_id)?;
+
+        let cart_item = UserShoppingCart {
+            user_id: _user_id,
+            product_store_id: product_store.id,
+            quantity: cart_dto.quantity,
+            created_date: Default::default(),
+        };
+
+        insert_into(user_shopping_carts::dsl::user_shopping_carts)
+            .values(cart_item)
+            .execute(conn)
+    }
+
+    pub fn get_cart(
+        conn: &mut PgConnection,
+        _user_id: i32,
+    ) -> QueryResult<Vec<UserShoppingCartDTO>> {
+        Ok(user_shopping_carts::dsl::user_shopping_carts
+            .filter(user_shopping_carts::user_id.eq(_user_id))
+            .get_results::<UserShoppingCart>(conn)?
+            .into_iter()
+            .map(|cart_item| UserShoppingCartDTO {
+                product_store_id: cart_item.product_store_id,
+                quantity: cart_item.quantity,
+            })
+            .collect::<Vec<UserShoppingCartDTO>>())
     }
 
     pub fn find_user_by_id(conn: &mut PgConnection, _id: i32) -> QueryResult<User> {

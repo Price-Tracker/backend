@@ -1,13 +1,13 @@
+use crate::models::store::Store;
+use crate::schema::product_store_prices::{self, dsl::*};
+use crate::schema::product_stores::{self, dsl::*};
+use crate::schema::products::{self, dsl::*};
 use chrono::NaiveDateTime;
 use diesel::prelude::*;
 use serde::{Deserialize, Serialize};
 use std::cmp::Ordering;
 use std::collections::HashSet;
 use utoipa::{IntoParams, ToSchema};
-
-use crate::models::store::Store;
-use crate::schema::product_store_prices::{self, dsl::*};
-use crate::schema::products::{self, dsl::*};
 
 #[derive(Queryable, Identifiable, Selectable, Serialize, ToSchema)]
 #[diesel(table_name = products)]
@@ -17,6 +17,19 @@ pub struct Product {
     pub name: String,
     pub description: Option<String>,
     pub picture_url: Option<String>,
+    pub created_date: NaiveDateTime,
+    pub updated_date: NaiveDateTime,
+}
+
+#[derive(Queryable, Identifiable, Selectable, Serialize, ToSchema)]
+#[diesel(belongs_to(Store))]
+#[diesel(belongs_to(Product))]
+#[diesel(table_name = product_stores)]
+pub struct ProductStore {
+    pub id: i32,
+    pub store_id: i32,
+    pub price_id: i32,
+    pub product_id: i32,
     pub created_date: NaiveDateTime,
     pub updated_date: NaiveDateTime,
 }
@@ -62,8 +75,8 @@ impl Product {
         _product_id: i32,
     ) -> Option<ProductStorePrice> {
         product_store_prices
-            .filter(store_id.eq(_store_id))
-            .filter(product_id.eq(_product_id))
+            .filter(product_store_prices::store_id.eq(_store_id))
+            .filter(product_store_prices::product_id.eq(_product_id))
             .order(product_store_prices::created_date.desc())
             .first::<ProductStorePrice>(conn)
             .optional()
@@ -116,8 +129,8 @@ impl Product {
         }
 
         let mut product_ids_with_prices = product_store_prices
-            .select(product_id)
-            .group_by(product_id)
+            .select(product_store_prices::product_id)
+            .group_by(product_store_prices::product_id)
             .into_boxed();
 
         if let Some(min_price) = filter.min_price {
@@ -156,5 +169,14 @@ impl Product {
             .load::<ProductStorePrice>(conn)?;
 
         Ok(Self::map_product_and_prices(conn, prices, product))
+    }
+
+    pub fn find_product_store_by_id(
+        conn: &mut PgConnection,
+        _id: i32,
+    ) -> QueryResult<ProductStore> {
+        product_stores
+            .filter(product_stores::id.eq(_id))
+            .get_result::<ProductStore>(conn)
     }
 }
