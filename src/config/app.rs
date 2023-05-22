@@ -52,6 +52,7 @@ pub fn get_openapi() -> openapi::OpenApi {
             cart_controller::get_cart,
             category_controller::categories,
             history_controller::add_to_history,
+            history_controller::get_history,
             ping_controller::ping,
             product_controller::products,
             product_controller::product
@@ -95,6 +96,7 @@ pub fn configure_services(cfg: &mut web::ServiceConfig) {
             .service(category_controller::categories)
             .service(product_controller::products)
             .service(product_controller::product)
-            .service(history_controller::add_to_history),
+            .service(history_controller::add_to_history)
+            .service(history_controller::get_history),
     );
 }

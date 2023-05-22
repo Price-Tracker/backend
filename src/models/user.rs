@@ -176,6 +176,16 @@ impl User {
             .execute(conn)
     }
 
+    pub fn get_history(
+        conn: &mut PgConnection,
+        _user_id: i32,
+    ) -> QueryResult<Vec<UserProductHistory>> {
+        user_product_history
+            .select(UserProductHistory::as_select())
+            .filter(user_id.eq(_user_id))
+            .get_results(conn)
+    }
+
     pub fn add_to_cart(
         conn: &mut PgConnection,
         _user_id: i32,
