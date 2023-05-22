@@ -6,6 +6,7 @@ use actix_web::{get, put, web, HttpResponse, Result};
 use deadpool_diesel::postgres::Pool;
 
 #[utoipa::path(
+    request_body = UserShoppingCartDTO,
     responses(
         (status = 200, description = "Successfully added to cart"),
         (status = 400, description = "Unknown error"),
@@ -26,7 +27,7 @@ pub async fn add_to_cart(
 
 #[utoipa::path(
     responses(
-        (status = 200, description = "Got a cart list", body = UserShoppingCartDTO),
+        (status = 200, description = "Got a cart list", body = Vec<UserShoppingCartDTO>),
         (status = 400, description = "Unknown error"),
     ),
         context_path = "/api/cart"

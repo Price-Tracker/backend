@@ -6,6 +6,7 @@ use actix_web::{post, web, HttpResponse, Result};
 use deadpool_diesel::postgres::Pool;
 
 #[utoipa::path(
+    request_body = HistoryDTO,
     responses(
         (status = 200, description = "Successfully added to history"),
         (status = 400, description = "Unknown error"),
