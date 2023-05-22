@@ -27,7 +27,7 @@ pub async fn add_to_cart(
 
 #[utoipa::path(
     responses(
-        (status = 200, description = "Got a cart list", body = Vec<UserShoppingCartDTO>),
+        (status = 200, description = "Got a cart list", body = ResponseVecShoppingCart),
         (status = 400, description = "Unknown error"),
     ),
         context_path = "/api/cart"

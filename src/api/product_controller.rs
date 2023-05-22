@@ -7,7 +7,7 @@ use deadpool_diesel::postgres::Pool;
 #[utoipa::path(
     params(ProductFilter),
     responses(
-        (status = 200, description = "Got a product list", body = Vec<ProductDTO>),
+        (status = 200, description = "Got a product list", body = ResponseVecProduct),
         (status = 400, description = "Unknown error"),
     ),
         context_path = "/api"
@@ -25,7 +25,7 @@ pub async fn products(
 
 #[utoipa::path(
     responses(
-        (status = 200, description = "Got a product by id", body = ProductDTO),
+        (status = 200, description = "Got a product by id", body = ResponseProduct),
         (status = 400, description = "Unknown error"),
     ),
         context_path = "/api"

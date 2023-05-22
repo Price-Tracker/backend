@@ -1,7 +1,11 @@
 use crate::api::*;
 use crate::models::category::Category;
 use crate::models::product::{Product, ProductDTO, ProductStorePriceDTO};
-use crate::models::response::ResponseTokens;
+use crate::models::response::{
+    ResponseProduct, ResponseTokens, ResponseVecCategory, ResponseVecHistory, ResponseVecProduct,
+    ResponseVecShoppingCart,
+};
+use crate::models::user::HistoryWithProductDTO;
 use crate::models::user::{HistoryDTO, LoginDTO, UserDTO, UserShoppingCartDTO};
 use crate::models::user_tokens::{UserRefreshTokenDTO, UserTokensDTO};
 use actix_cors::Cors;
@@ -45,30 +49,36 @@ pub fn get_openapi() -> openapi::OpenApi {
     #[derive(OpenApi)]
     #[openapi(
         paths(
-            account_controller::signup,
             account_controller::login,
             account_controller::refresh_token,
+            account_controller::signup,
             cart_controller::add_to_cart,
             cart_controller::get_cart,
             category_controller::categories,
             history_controller::add_to_history,
             history_controller::get_history,
             ping_controller::ping,
+            product_controller::product,
             product_controller::products,
-            product_controller::product
         ),
         components(schemas(
-            UserRefreshTokenDTO,
-            UserTokensDTO,
-            LoginDTO,
-            UserDTO,
+            Category,
             HistoryDTO,
+            HistoryWithProductDTO,
+            LoginDTO,
+            Product,
             ProductDTO,
             ProductStorePriceDTO,
-            Product,
+            ResponseProduct,
             ResponseTokens,
-            Category,
-            UserShoppingCartDTO
+            ResponseVecCategory,
+            ResponseVecHistory,
+            ResponseVecProduct,
+            ResponseVecShoppingCart,
+            UserDTO,
+            UserRefreshTokenDTO,
+            UserShoppingCartDTO,
+            UserTokensDTO,
         ))
     )]
     struct ApiDoc;

@@ -74,6 +74,12 @@ pub struct HistoryDTO {
     product_id: i32,
 }
 
+#[derive(Serialize, ToSchema)]
+pub struct HistoryWithProductDTO {
+    product: Product,
+    access_date: NaiveDateTime,
+}
+
 impl User {
     pub fn signup(conn: &mut PgConnection, user: UserDTO) -> Result<String, String> {
         if Self::find_user_by_login(conn, &user.login).is_err()
@@ -179,11 +185,17 @@ impl User {
     pub fn get_history(
         conn: &mut PgConnection,
         _user_id: i32,
-    ) -> QueryResult<Vec<UserProductHistory>> {
-        user_product_history
+    ) -> QueryResult<Vec<HistoryWithProductDTO>> {
+        Ok(user_product_history
             .select(UserProductHistory::as_select())
             .filter(user_id.eq(_user_id))
-            .get_results(conn)
+            .get_results(conn)?
+            .into_iter()
+            .map(|history| HistoryWithProductDTO {
+                product: Product::find_product_by_id(conn, history.product_id).unwrap(),
+                access_date: history.created_date,
+            })
+            .collect::<Vec<HistoryWithProductDTO>>())
     }
 
     pub fn add_to_cart(

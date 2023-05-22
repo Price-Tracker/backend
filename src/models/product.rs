@@ -9,7 +9,7 @@ use std::cmp::Ordering;
 use std::collections::HashSet;
 use utoipa::{IntoParams, ToSchema};
 
-#[derive(Debug, Queryable, Identifiable, Selectable, Serialize, ToSchema)]
+#[derive(Deserialize, Queryable, Identifiable, Selectable, Serialize, ToSchema)]
 #[diesel(table_name = products)]
 pub struct Product {
     pub id: i32,
@@ -176,7 +176,10 @@ impl Product {
             .collect::<Vec<ProductDTO>>())
     }
 
-    pub fn get_product(conn: &mut PgConnection, _product_id: i32) -> QueryResult<ProductDTO> {
+    pub(crate) fn get_product(
+        conn: &mut PgConnection,
+        _product_id: i32,
+    ) -> QueryResult<ProductDTO> {
         let product_store = product_stores
             .filter(product_id.eq(_product_id))
             .first::<ProductStore>(conn)?;
@@ -190,6 +193,13 @@ impl Product {
             prices,
             product_store,
         ))
+    }
+
+    pub fn find_product_by_id(conn: &mut PgConnection, _id: i32) -> QueryResult<Product> {
+        products
+            .select(Product::as_select())
+            .filter(products::id.eq(_id))
+            .first(conn)
     }
 
     pub fn find_product_store_by_id(

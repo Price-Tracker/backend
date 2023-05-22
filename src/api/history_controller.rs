@@ -27,7 +27,7 @@ pub async fn add_to_history(
 
 #[utoipa::path(
     responses(
-        (status = 200, description = "Got a history list", body = Vec<HistoryDTO>),
+        (status = 200, description = "Got a history list", body = ResponseVecHistory),
         (status = 400, description = "Unknown error"),
     ),
     context_path = "/api"

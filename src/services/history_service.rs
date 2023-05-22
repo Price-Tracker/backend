@@ -1,6 +1,6 @@
 use crate::errors::ServiceError;
 use crate::middlewares::jwt_middleware::TokenClaims;
-use crate::models::user::{HistoryDTO, User, UserProductHistory};
+use crate::models::user::{HistoryDTO, HistoryWithProductDTO, User};
 use actix_web::http::StatusCode;
 use actix_web::web;
 use deadpool_diesel::postgres::Pool;
@@ -36,7 +36,7 @@ pub async fn add_to_history(
 pub async fn get_history(
     token_claims: TokenClaims,
     pool: &web::Data<Pool>,
-) -> Result<Vec<UserProductHistory>, ServiceError> {
+) -> Result<Vec<HistoryWithProductDTO>, ServiceError> {
     let conn = &pool.get().await.unwrap();
 
     conn.interact(move |conn| {
