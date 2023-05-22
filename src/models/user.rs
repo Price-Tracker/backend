@@ -8,7 +8,7 @@ use actix_web::web::Data;
 use argon2::password_hash::rand_core::OsRng;
 use argon2::password_hash::SaltString;
 use argon2::{Argon2, PasswordHash, PasswordHasher, PasswordVerifier};
-use chrono::{NaiveDate, NaiveDateTime};
+use chrono::NaiveDateTime;
 use diesel::insert_into;
 use diesel::prelude::*;
 use log::info;
@@ -22,8 +22,8 @@ pub struct User {
     pub login: String,
     pub email: String,
     pub password: String,
-    pub created_date: NaiveDate,
-    pub updated_date: NaiveDate,
+    pub created_date: NaiveDateTime,
+    pub updated_date: NaiveDateTime,
 }
 
 #[derive(Queryable, Associations, Selectable, Insertable, Serialize)]

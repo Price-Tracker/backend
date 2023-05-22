@@ -36,7 +36,7 @@ diesel::table! {
         #[sql_name = "type"]
         type_ -> Varchar,
         delivered -> Bool,
-        created_date -> Date,
+        created_date -> Timestamp,
     }
 }
 
@@ -56,8 +56,8 @@ diesel::table! {
         store_id -> Int4,
         price_id -> Int4,
         product_id -> Int4,
-        created_date -> Date,
-        updated_date -> Date,
+        created_date -> Timestamp,
+        updated_date -> Timestamp,
     }
 }
 
@@ -68,8 +68,8 @@ diesel::table! {
         name -> Varchar,
         description -> Nullable<Varchar>,
         picture_url -> Nullable<Varchar>,
-        created_date -> Date,
-        updated_date -> Date,
+        created_date -> Timestamp,
+        updated_date -> Timestamp,
     }
 }
 
@@ -109,7 +109,7 @@ diesel::table! {
         location -> Varchar,
         latitude -> Nullable<Float4>,
         longitude -> Nullable<Float4>,
-        created_date -> Date,
+        created_date -> Timestamp,
     }
 }
 
@@ -117,7 +117,7 @@ diesel::table! {
     user_access (id) {
         id -> Int4,
         user_id -> Int4,
-        access_date -> Date,
+        access_date -> Timestamp,
         is_successful_login -> Bool,
     }
 }
@@ -173,7 +173,7 @@ diesel::table! {
         user_id -> Int4,
         product_store_id -> Int4,
         quantity -> Int4,
-        created_date -> Date,
+        created_date -> Timestamp,
     }
 }
 
@@ -184,7 +184,7 @@ diesel::table! {
         product_id -> Int4,
         previous_minimal_price -> Float4,
         subscribed -> Bool,
-        created_date -> Date,
+        created_date -> Timestamp,
     }
 }
 
@@ -203,8 +203,8 @@ diesel::table! {
         login -> Varchar,
         email -> Varchar,
         password -> Varchar,
-        created_date -> Date,
-        updated_date -> Date,
+        created_date -> Timestamp,
+        updated_date -> Timestamp,
     }
 }
 

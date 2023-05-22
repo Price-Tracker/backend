@@ -1,4 +1,4 @@
-use chrono::{NaiveDate, NaiveDateTime};
+use chrono::NaiveDateTime;
 use diesel::prelude::*;
 use serde::{Deserialize, Serialize};
 use std::cmp::Ordering;
@@ -17,8 +17,8 @@ pub struct Product {
     pub name: String,
     pub description: Option<String>,
     pub picture_url: Option<String>,
-    pub created_date: NaiveDate,
-    pub updated_date: NaiveDate,
+    pub created_date: NaiveDateTime,
+    pub updated_date: NaiveDateTime,
 }
 
 #[derive(Queryable, Identifiable, Associations, Selectable, Serialize)]
