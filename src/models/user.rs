@@ -28,6 +28,7 @@ pub struct User {
 
 #[derive(Queryable, Associations, Selectable, Insertable, Serialize)]
 #[diesel(belongs_to(Product))]
+#[diesel(belongs_to(User))]
 #[diesel(table_name = user_product_history)]
 pub struct UserProductHistory {
     pub user_id: i32,
