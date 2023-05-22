@@ -30,7 +30,9 @@ async fn main() -> std::io::Result<()> {
 
     HttpServer::new(move || {
         App::new()
-            .wrap(middleware::Logger::default())
+            .wrap(middleware::Logger::new(
+                "%{r}a \"%r\" %s %b \"%{Referer}i\" \"%{User-Agent}i\" %Dms",
+            ))
             .wrap(config::app::get_cors())
             .app_data(web::Data::new(pool.clone()))
             .app_data(web::Data::new(config.clone()))
