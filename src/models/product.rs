@@ -45,6 +45,7 @@ pub struct ProductStorePrice {
 
 #[derive(Deserialize, IntoParams)]
 pub struct ProductFilter {
+    query: Option<String>,
     category_id: Option<i32>,
     min_price: Option<f32>,
     max_price: Option<f32>,
@@ -131,6 +132,11 @@ impl Product {
             .select(Product::as_select())
             .inner_join(product_stores)
             .into_boxed();
+
+        if let Some(query) = filter.query {
+            let pattern = format!("%{}%", query);
+            products_query = products_query.filter(name.ilike(pattern));
+        }
 
         if let Some(_category_id) = filter.category_id {
             products_query = products_query.filter(category_id.eq(_category_id));
