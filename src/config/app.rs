@@ -13,6 +13,16 @@ use actix_web::web;
 use std::env;
 use utoipa::{openapi, OpenApi};
 
+// Env var names
+static APP_HOST: &str = "APP_HOST";
+static APP_PORT: &str = "APP_PORT";
+static DATABASE_URL: &str = "DATABASE_URL";
+static JWT_SECRET: &str = "JWT_SECRET";
+static JWT_EXPIRES_IN_SECS: &str = "JWT_EXPIRES_IN_SECS";
+
+// Env defaults
+static APP_HOST_DEFAULT: &str = "0.0.0.0";
+
 #[derive(Debug, Clone)]
 pub struct Config {
     pub app_url: String,
@@ -23,13 +33,13 @@ pub struct Config {
 
 impl Config {
     pub fn init() -> Config {
-        let app_host = env::var("APP_HOST").unwrap_or("0.0.0.0".to_string());
-        let app_port = env::var("APP_PORT").expect("APP_PORT must be set");
+        let app_host = env::var(APP_HOST).unwrap_or_else(|_| APP_HOST_DEFAULT.to_string());
+        let app_port = env::var(APP_PORT).expect(&format!("{APP_PORT} must be set"));
         let app_url = format!("{}:{}", app_host, app_port);
-        let database_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set");
-        let jwt_secret = env::var("JWT_SECRET").expect("JWT_SECRET must be set");
-        let jwt_expires_in_secs = env::var("JWT_EXPIRES_IN_SECS")
-            .expect("JWT_EXPIRES_IN_SECS must be set")
+        let database_url = env::var(DATABASE_URL).expect(&format!("{DATABASE_URL} must be set"));
+        let jwt_secret = env::var(JWT_SECRET).expect(&format!("{JWT_SECRET} must be set"));
+        let jwt_expires_in_secs = env::var(JWT_EXPIRES_IN_SECS)
+            .expect(&format!("{JWT_EXPIRES_IN_SECS} must be set"))
             .parse::<i32>()
             .unwrap();
         Config {

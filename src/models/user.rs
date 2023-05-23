@@ -3,7 +3,7 @@ use crate::models::product::{Product, ProductStore};
 use crate::models::user_tokens::{UserRefreshTokenDTO, UserToken, UserTokensDTO};
 use crate::schema::user_product_history::user_id;
 use crate::schema::user_product_history::{self, dsl::*};
-use crate::schema::user_shopping_carts::{self};
+use crate::schema::user_shopping_carts;
 use crate::schema::users::{self, dsl::*};
 use actix_web::web::Data;
 use argon2::password_hash::rand_core::OsRng;
@@ -217,7 +217,7 @@ impl User {
             user_id: _user_id,
             product_store_id: product_store.id,
             quantity: cart_dto.quantity,
-            created_date: Default::default(),
+            created_date: NaiveDateTime::default(),
         };
 
         insert_into(user_shopping_carts::dsl::user_shopping_carts)

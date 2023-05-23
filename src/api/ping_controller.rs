@@ -22,7 +22,7 @@ pub async fn ping(db_pool: web::Data<Pool>) -> Result<HttpResponse, Error> {
         })
         .await;
 
-    if let Ok(..) = result {
+    if result.is_ok() {
         Ok(HttpResponse::Ok().json("pong!"))
     } else {
         Err(MyError::UnknownError.into())
