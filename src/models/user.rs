@@ -186,18 +186,23 @@ impl User {
         conn: &mut PgConnection,
         _user_id: i32,
     ) -> QueryResult<Vec<HistoryWithProductDTO>> {
-        Ok(user_product_history
+        let mut fetched_history = user_product_history
             .select(UserProductHistory::as_select())
             .filter(user_id.eq(_user_id))
+            .distinct_on(product_id)
             .limit(60) // TODO: make it configurable
-            .order(user_product_history::created_date.desc())
+            .order_by((product_id, user_product_history::created_date.desc()))
             .get_results(conn)?
             .into_iter()
             .map(|history| HistoryWithProductDTO {
                 product: Product::find_product_by_id(conn, history.product_id).unwrap(),
                 access_date: history.created_date,
             })
-            .collect::<Vec<HistoryWithProductDTO>>())
+            .collect::<Vec<HistoryWithProductDTO>>();
+
+        fetched_history.sort_by(|a, b| b.access_date.cmp(&a.access_date));
+
+        Ok(fetched_history)
     }
 
     pub fn add_to_cart(
