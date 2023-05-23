@@ -77,7 +77,7 @@ pub struct HistoryDTO {
 #[derive(Serialize, ToSchema)]
 pub struct HistoryWithProductDTO {
     product: Product,
-    access_date: NaiveDateTime,
+    access_date: String,
 }
 
 impl User {
@@ -196,7 +196,7 @@ impl User {
             .into_iter()
             .map(|history| HistoryWithProductDTO {
                 product: Product::find_product_by_id(conn, history.product_id).unwrap(),
-                access_date: history.created_date,
+                access_date: history.created_date.format("%Y-%m-%d %H:%M:%S").to_string(),
             })
             .collect::<Vec<HistoryWithProductDTO>>();
 
