@@ -221,6 +221,7 @@ diesel::joinable!(stores -> retail_chains (retail_chain_id));
 diesel::joinable!(user_access -> users (user_id));
 diesel::joinable!(user_notification_settings -> users (user_id));
 diesel::joinable!(user_product_history -> products (product_id));
+diesel::joinable!(user_product_history -> users (user_id));
 diesel::joinable!(user_product_review -> products (product_id));
 diesel::joinable!(user_product_review -> stores (store_id));
 diesel::joinable!(user_product_review -> users (user_id));
