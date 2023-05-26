@@ -55,6 +55,7 @@ pub struct ProductFilter {
 pub struct ProductStorePriceDTO {
     pub store_id: i32,
     pub store_name: String,
+    pub product_store_id: i32,
     pub price: f32,
 }
 
@@ -102,6 +103,7 @@ impl Product {
                 ProductStorePriceDTO {
                     store_id: _store_id,
                     store_name: Store::get_store_name_by_id(conn, _store_id).unwrap(),
+                    product_store_id: _price.product_store_id,
                     price: _price.price,
                 }
             })
