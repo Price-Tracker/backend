@@ -230,21 +230,24 @@ impl Product {
         _user_id: i32,
         _product_id: i32,
     ) -> QueryResult<usize> {
-        // check if user is already subscribed
         if let Ok(_) = user_subscribed_products
             .filter(user_id.eq(_user_id))
             .filter(user_subscribed_products::product_id.eq(_product_id))
             .first::<UserSubscribedProduct>(conn)
         {
-            return Ok(0);
+            update(user_subscribed_products::table)
+                .filter(user_id.eq(_user_id))
+                .filter(user_subscribed_products::product_id.eq(_product_id))
+                .set(subscribed.eq(true))
+                .execute(conn)
+        } else {
+            insert_into(user_subscribed_products::table)
+                .values((
+                    user_id.eq(_user_id),
+                    user_subscribed_products::product_id.eq(_product_id),
+                ))
+                .execute(conn)
         }
-
-        insert_into(user_subscribed_products::table)
-            .values((
-                user_id.eq(_user_id),
-                user_subscribed_products::product_id.eq(_product_id),
-            ))
-            .execute(conn)
     }
 
     pub fn unsubscribe_from_product(
