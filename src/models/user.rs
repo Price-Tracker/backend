@@ -46,6 +46,17 @@ pub struct UserShoppingCart {
     pub product_store_id: i32,
     pub quantity: i32,
     pub created_date: NaiveDateTime,
+    pub id: i32,
+}
+
+#[derive(Queryable, Associations, Selectable, Insertable, Serialize)]
+#[diesel(belongs_to(ProductStore))]
+#[diesel(belongs_to(User))]
+#[diesel(table_name = user_shopping_carts)]
+pub struct UserShoppingCartInsertable {
+    pub user_id: i32,
+    pub product_store_id: i32,
+    pub quantity: i32,
 }
 
 #[derive(Insertable, Serialize, Deserialize, ToSchema)]
@@ -213,11 +224,10 @@ impl User {
         // Ensure that this product_store exists
         let product_store = Product::find_product_store_by_id(conn, cart_dto.product_store_id)?;
 
-        let cart_item = UserShoppingCart {
+        let cart_item = UserShoppingCartInsertable {
             user_id: _user_id,
             product_store_id: product_store.id,
             quantity: cart_dto.quantity,
-            created_date: NaiveDateTime::default(),
         };
 
         insert_into(user_shopping_carts::dsl::user_shopping_carts)

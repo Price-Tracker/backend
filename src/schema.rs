@@ -167,11 +167,12 @@ diesel::table! {
 }
 
 diesel::table! {
-    user_shopping_carts (user_id) {
+    user_shopping_carts (id) {
         user_id -> Int4,
         product_store_id -> Int4,
         quantity -> Int4,
         created_date -> Timestamp,
+        id -> Int4,
     }
 }
 
