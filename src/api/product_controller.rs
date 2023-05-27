@@ -39,6 +39,28 @@ pub async fn product(product_id: web::Path<i32>, pool: web::Data<Pool>) -> Resul
     }
 }
 
+// get product subscription
+#[utoipa::path(
+    responses(
+        (status = 200, description = "Got a product subscription", body = ResponseProductSubscription),
+        (status = 400, description = "Unknown error"),
+    ),
+        context_path = "/api"
+)]
+#[get("/product/{id}/subscription")]
+pub async fn get_product_subscription(
+    product_id: web::Path<i32>,
+    token_claims: TokenClaims,
+    pool: web::Data<Pool>,
+) -> Result<HttpResponse> {
+    match product_service::get_product_subscription(product_id, token_claims, &pool).await {
+        Ok(product_subscription) => {
+            Ok(HttpResponse::Ok().json(ResponseBody::new("success", product_subscription)))
+        }
+        Err(err) => Ok(err.response()),
+    }
+}
+
 #[utoipa::path(
     responses(
         (status = 200, description = "Successfully subscribed to product"),

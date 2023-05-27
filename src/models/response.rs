@@ -1,6 +1,8 @@
 use crate::models::category::Category;
 use crate::models::product::ProductDTO;
-use crate::models::user::{HistoryWithProductDTO, PasswordRequirements, UserShoppingCartDTO};
+use crate::models::user::{
+    HistoryWithProductDTO, PasswordRequirements, UserShoppingCartDTO, UserSubscribedProductDTO,
+};
 use crate::models::user_tokens::UserTokensDTO;
 use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
@@ -11,6 +13,7 @@ use utoipa::ToSchema;
     ResponsePasswordRequirements = ResponseBody<PasswordRequirements>,
     ResponseLogin = ResponseBody<String>,
     ResponseProduct = ResponseBody<ProductDTO>,
+    ResponseProductSubscription = ResponseBody<UserSubscribedProductDTO>,
     ResponseVecProduct = ResponseBody<Vec<ProductDTO>>,
     ResponseVecShoppingCart = ResponseBody<Vec<UserShoppingCartDTO>>,
     ResponseVecCategory = ResponseBody<Vec<Category>>,

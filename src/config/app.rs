@@ -2,12 +2,13 @@ use crate::api::*;
 use crate::models::category::Category;
 use crate::models::product::{Product, ProductDTO, ProductStorePriceDTO};
 use crate::models::response::{
-    ResponsePasswordRequirements, ResponseProduct, ResponseTokens, ResponseVecCategory,
-    ResponseVecHistory, ResponseVecProduct, ResponseVecShoppingCart,
+    ResponsePasswordRequirements, ResponseProduct, ResponseProductSubscription, ResponseTokens,
+    ResponseVecCategory, ResponseVecHistory, ResponseVecProduct, ResponseVecShoppingCart,
 };
 use crate::models::user::HistoryWithProductDTO;
 use crate::models::user::{
     HistoryDTO, LoginDTO, PasswordRequirements, UserDTO, UserShoppingCartDTO,
+    UserSubscribedProductDTO,
 };
 use crate::models::user_tokens::{UserRefreshTokenDTO, UserTokensDTO};
 use actix_cors::Cors;
@@ -75,6 +76,7 @@ pub fn get_openapi() -> openapi::OpenApi {
             product_controller::products,
             product_controller::subscribe_to_product,
             product_controller::unsubscribe_from_product,
+            product_controller::get_product_subscription,
         ),
         components(schemas(
             Category,
@@ -83,6 +85,8 @@ pub fn get_openapi() -> openapi::OpenApi {
             LoginDTO,
             PasswordRequirements,
             Product,
+            ResponseProductSubscription,
+            UserSubscribedProductDTO,
             ProductDTO,
             ProductStorePriceDTO,
             ResponsePasswordRequirements,
@@ -127,6 +131,7 @@ pub fn configure_services(cfg: &mut web::ServiceConfig) {
             .service(product_controller::product)
             .service(product_controller::products)
             .service(product_controller::subscribe_to_product)
-            .service(product_controller::unsubscribe_from_product),
+            .service(product_controller::unsubscribe_from_product)
+            .service(product_controller::get_product_subscription),
     );
 }

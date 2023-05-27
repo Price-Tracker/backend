@@ -1,5 +1,5 @@
 use crate::models::store::Store;
-use crate::models::user::UserSubscribedProduct;
+use crate::models::user::{UserSubscribedProduct, UserSubscribedProductDTO};
 use crate::schema::product_store_prices::{self, dsl::*};
 use crate::schema::product_stores::{self, dsl::*};
 use crate::schema::products::{self, dsl::*};
@@ -201,6 +201,28 @@ impl Product {
             prices,
             product_store,
         ))
+    }
+
+    pub fn get_product_subscription(
+        conn: &mut PgConnection,
+        _user_id: i32,
+        _product_id: i32,
+    ) -> UserSubscribedProductDTO {
+        if let Ok(subscription) = user_subscribed_products
+            .filter(user_id.eq(_user_id))
+            .filter(user_subscribed_products::product_id.eq(_product_id))
+            .first::<UserSubscribedProduct>(conn)
+        {
+            UserSubscribedProductDTO {
+                product_id: subscription.product_id,
+                subscribed: true,
+            }
+        } else {
+            UserSubscribedProductDTO {
+                product_id: _product_id,
+                subscribed: false,
+            }
+        }
     }
 
     pub fn subscribe_to_product(
