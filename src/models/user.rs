@@ -16,7 +16,7 @@ use diesel::prelude::*;
 use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
 
-#[derive(Serialize)]
+#[derive(Serialize, ToSchema)]
 pub struct PasswordRequirements {
     pub min_length: u32,
     pub max_length: u32,

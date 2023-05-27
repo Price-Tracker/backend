@@ -6,7 +6,9 @@ use crate::models::response::{
     ResponseVecHistory, ResponseVecProduct, ResponseVecShoppingCart,
 };
 use crate::models::user::HistoryWithProductDTO;
-use crate::models::user::{HistoryDTO, LoginDTO, UserDTO, UserShoppingCartDTO};
+use crate::models::user::{
+    HistoryDTO, LoginDTO, PasswordRequirements, UserDTO, UserShoppingCartDTO,
+};
 use crate::models::user_tokens::{UserRefreshTokenDTO, UserTokensDTO};
 use actix_cors::Cors;
 use actix_web::web;
@@ -79,6 +81,7 @@ pub fn get_openapi() -> openapi::OpenApi {
             HistoryDTO,
             HistoryWithProductDTO,
             LoginDTO,
+            PasswordRequirements,
             Product,
             ProductDTO,
             ProductStorePriceDTO,
