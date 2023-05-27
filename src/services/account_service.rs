@@ -1,6 +1,6 @@
 use crate::config::app::Config;
 use crate::errors::ServiceError;
-use crate::models::user::{LoginDTO, User, UserDTO};
+use crate::models::user::{LoginDTO, PasswordRequirements, User, UserDTO};
 use crate::models::user_tokens::{UserRefreshTokenDTO, UserTokensDTO};
 use actix_web::http::StatusCode;
 use actix_web::web::Data;
@@ -47,4 +47,8 @@ pub async fn refresh_token(
     )
     .await
     .unwrap()
+}
+
+pub fn get_password_requirements() -> PasswordRequirements {
+    User::get_password_requirements()
 }

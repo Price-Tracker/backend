@@ -16,6 +16,92 @@ use log::info;
 use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
 
+#[derive(Serialize)]
+pub struct PasswordRequirements {
+    pub min_length: u32,
+    pub max_length: u32,
+    pub min_uppercase: u32,
+    pub min_lowercase: u32,
+    pub min_digits: u32,
+    pub min_special: u32,
+}
+
+impl PasswordRequirements {
+    pub fn default() -> PasswordRequirements {
+        PasswordRequirements {
+            min_length: 8,
+            max_length: 32,
+            min_uppercase: 1,
+            min_lowercase: 1,
+            min_digits: 1,
+            min_special: 1,
+        }
+    }
+
+    pub fn validate(&self, _password: &str) -> Result<(), String> {
+        let mut uppercase = 0;
+        let mut lowercase = 0;
+        let mut digits = 0;
+        let mut special = 0;
+
+        for c in _password.chars() {
+            if c.is_ascii_uppercase() {
+                uppercase += 1;
+            } else if c.is_ascii_lowercase() {
+                lowercase += 1;
+            } else if c.is_ascii_digit() {
+                digits += 1;
+            } else {
+                special += 1;
+            }
+        }
+
+        if _password.len() < self.min_length as usize {
+            return Err(format!(
+                "Password must be at least {} characters long",
+                self.min_length
+            ));
+        }
+
+        if _password.len() > self.max_length as usize {
+            return Err(format!(
+                "Password must be at most {} characters long",
+                self.max_length
+            ));
+        }
+
+        if uppercase < self.min_uppercase {
+            return Err(format!(
+                "Password must have at least {} uppercase characters",
+                self.min_uppercase
+            ));
+        }
+
+        if lowercase < self.min_lowercase {
+            return Err(format!(
+                "Password must have at least {} lowercase characters",
+                self.min_lowercase
+            ));
+        }
+
+        if digits < self.min_digits {
+            return Err(format!(
+                "Password must have at least {} digits",
+                self.min_digits
+            ));
+        }
+
+        if special < self.min_special {
+            return Err(format!(
+                "Password must have at least {} special characters",
+                self.min_special
+            ));
+        }
+
+        Ok(())
+    }
+}
+
 #[derive(Identifiable, Queryable, Clone)]
 pub struct User {
     pub id: i32,
@@ -96,17 +182,17 @@ impl User {
         if Self::find_user_by_login(conn, &user.login).is_err()
             && Self::find_user_by_email(conn, &user.email).is_err()
         {
+            // Validate password requirements
+            let password_requirements = Self::get_password_requirements();
+            if let Err(e) = password_requirements.validate(&user.password) {
+                return Err(e);
+            }
+
             let salt = SaltString::generate(&mut OsRng);
             let hashed_password = Argon2::default()
                 .hash_password(user.password.as_bytes(), &salt)
                 .expect("Error while hashing password")
                 .to_string();
-
-            info!(
-                "Hashed password: {}, len: {}",
-                hashed_password,
-                hashed_password.len()
-            );
 
             let user = UserDTO {
                 password: hashed_password,
@@ -134,14 +220,11 @@ impl User {
             .or_filter(email.eq(&login_cred.login_or_email))
             .get_result::<User>(conn)
         {
-            info!("Found user with id {}", fetched_user.id);
             if let Ok(parsed_hash) = PasswordHash::new(&fetched_user.password) {
                 if Argon2::default()
                     .verify_password(login_cred.password.as_bytes(), &parsed_hash)
                     .is_ok()
                 {
-                    info!("Password for user id {} is right", fetched_user.id);
-
                     let access_token =
                         UserToken::generate_access_token(fetched_user.clone(), config);
                     let refresh_token =
@@ -153,15 +236,8 @@ impl User {
                     };
 
                     return Ok(user_tokens);
-                } else {
-                    info!("Password for user id {} is wrong", fetched_user.id);
                 }
             }
-        } else {
-            info!(
-                "Can't find user with login or email {}",
-                login_cred.login_or_email
-            );
         }
         Err("Login, email or password is wrong!".to_string())
     }
@@ -180,6 +256,10 @@ impl User {
         } else {
             Err("Refresh token not found!".to_string())
         }
+    }
+
+    pub fn get_password_requirements() -> PasswordRequirements {
+        PasswordRequirements::default()
     }
 
     pub fn add_to_history(

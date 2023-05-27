@@ -34,8 +34,8 @@ impl ServiceError {
         ServiceError {
             http_status,
             body: ResponseBody {
-                status: message,
-                data: String::default(),
+                status: "error".to_string(),
+                data: message,
             },
         }
     }

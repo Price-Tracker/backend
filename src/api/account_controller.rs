@@ -3,7 +3,7 @@ use crate::models::response::ResponseBody;
 use crate::models::user::{LoginDTO, UserDTO};
 use crate::models::user_tokens::UserRefreshTokenDTO;
 use crate::services::account_service;
-use actix_web::{post, web, HttpResponse, Result};
+use actix_web::{get, post, web, HttpResponse, Result};
 use deadpool_diesel::postgres::Pool;
 
 #[utoipa::path(
@@ -60,4 +60,18 @@ pub async fn refresh_token(
         Ok(tokens) => Ok(HttpResponse::Ok().json(ResponseBody::new("success", tokens))),
         Err(err) => Ok(err.response()),
     }
+}
+
+#[utoipa::path(
+    responses(
+        (status = 200, description = "Password requirements get successful", body = ResponsePasswordRequirements),
+    ),
+    context_path = "/api/user"
+)]
+#[get("/password-requirements")]
+pub async fn password_requirements() -> Result<HttpResponse> {
+    Ok(HttpResponse::Ok().json(ResponseBody::new(
+        "success",
+        account_service::get_password_requirements(),
+    )))
 }

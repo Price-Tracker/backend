@@ -2,8 +2,8 @@ use crate::api::*;
 use crate::models::category::Category;
 use crate::models::product::{Product, ProductDTO, ProductStorePriceDTO};
 use crate::models::response::{
-    ResponseProduct, ResponseTokens, ResponseVecCategory, ResponseVecHistory, ResponseVecProduct,
-    ResponseVecShoppingCart,
+    ResponsePasswordRequirements, ResponseProduct, ResponseTokens, ResponseVecCategory,
+    ResponseVecHistory, ResponseVecProduct, ResponseVecShoppingCart,
 };
 use crate::models::user::HistoryWithProductDTO;
 use crate::models::user::{HistoryDTO, LoginDTO, UserDTO, UserShoppingCartDTO};
@@ -62,6 +62,7 @@ pub fn get_openapi() -> openapi::OpenApi {
             account_controller::login,
             account_controller::refresh_token,
             account_controller::signup,
+            account_controller::password_requirements,
             cart_controller::add_to_cart,
             cart_controller::get_cart,
             category_controller::categories,
@@ -81,6 +82,7 @@ pub fn get_openapi() -> openapi::OpenApi {
             ProductStorePriceDTO,
             ResponseProduct,
             ResponseTokens,
+            ResponsePasswordRequirements,
             ResponseVecCategory,
             ResponseVecHistory,
             ResponseVecProduct,
@@ -105,7 +107,8 @@ pub fn configure_services(cfg: &mut web::ServiceConfig) {
                 web::scope("/user")
                     .service(account_controller::signup)
                     .service(account_controller::login)
-                    .service(account_controller::refresh_token),
+                    .service(account_controller::refresh_token)
+                    .service(account_controller::password_requirements),
             )
             .service(
                 web::scope("/cart")
