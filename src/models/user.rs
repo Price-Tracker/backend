@@ -37,7 +37,7 @@ pub struct UserProductHistory {
     pub created_date: NaiveDateTime,
 }
 
-#[derive(Queryable, Associations, Selectable, Insertable, Serialize)]
+#[derive(Queryable, Associations, Selectable, Insertable, Identifiable, Serialize)]
 #[diesel(belongs_to(ProductStore))]
 #[diesel(belongs_to(User))]
 #[diesel(table_name = user_shopping_carts)]
@@ -224,14 +224,29 @@ impl User {
         // Ensure that this product_store exists
         let product_store = Product::find_product_store_by_id(conn, cart_dto.product_store_id)?;
 
-        let cart_item = UserShoppingCartInsertable {
+        let insertable_cart_item = UserShoppingCartInsertable {
             user_id: _user_id,
             product_store_id: product_store.id,
             quantity: cart_dto.quantity,
         };
 
+        // Check if this product_store is already in cart for this user
+        if let Ok(cart_item) = user_shopping_carts::dsl::user_shopping_carts
+            .filter(user_shopping_carts::user_id.eq(_user_id))
+            .filter(user_shopping_carts::product_store_id.eq(product_store.id))
+            .get_result::<UserShoppingCart>(conn)
+        {
+            // If it is, then just update quantity
+            return diesel::update(&cart_item)
+                .set(
+                    user_shopping_carts::quantity
+                        .eq(cart_dto.quantity + insertable_cart_item.quantity),
+                )
+                .execute(conn);
+        }
+
         insert_into(user_shopping_carts::dsl::user_shopping_carts)
-            .values(cart_item)
+            .values(insertable_cart_item)
             .execute(conn)
     }
 
