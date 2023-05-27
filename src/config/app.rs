@@ -60,9 +60,9 @@ pub fn get_openapi() -> openapi::OpenApi {
     #[openapi(
         paths(
             account_controller::login,
+            account_controller::password_requirements,
             account_controller::refresh_token,
             account_controller::signup,
-            account_controller::password_requirements,
             cart_controller::add_to_cart,
             cart_controller::get_cart,
             category_controller::categories,
@@ -71,6 +71,8 @@ pub fn get_openapi() -> openapi::OpenApi {
             ping_controller::ping,
             product_controller::product,
             product_controller::products,
+            product_controller::subscribe_to_product,
+            product_controller::unsubscribe_from_product,
         ),
         components(schemas(
             Category,
@@ -80,9 +82,9 @@ pub fn get_openapi() -> openapi::OpenApi {
             Product,
             ProductDTO,
             ProductStorePriceDTO,
+            ResponsePasswordRequirements,
             ResponseProduct,
             ResponseTokens,
-            ResponsePasswordRequirements,
             ResponseVecCategory,
             ResponseVecHistory,
             ResponseVecProduct,
@@ -115,11 +117,13 @@ pub fn configure_services(cfg: &mut web::ServiceConfig) {
                     .service(cart_controller::add_to_cart)
                     .service(cart_controller::get_cart),
             )
-            .service(ping_controller::ping)
             .service(category_controller::categories)
-            .service(product_controller::products)
-            .service(product_controller::product)
             .service(history_controller::add_to_history)
-            .service(history_controller::get_history),
+            .service(history_controller::get_history)
+            .service(ping_controller::ping)
+            .service(product_controller::product)
+            .service(product_controller::products)
+            .service(product_controller::subscribe_to_product)
+            .service(product_controller::unsubscribe_from_product),
     );
 }

@@ -1,9 +1,12 @@
 use crate::models::store::Store;
+use crate::models::user::UserSubscribedProduct;
 use crate::schema::product_store_prices::{self, dsl::*};
 use crate::schema::product_stores::{self, dsl::*};
 use crate::schema::products::{self, dsl::*};
+use crate::schema::user_subscribed_products::{self, dsl::*};
 use chrono::NaiveDateTime;
 use diesel::prelude::*;
+use diesel::{insert_into, update};
 use serde::{Deserialize, Serialize};
 use std::cmp::Ordering;
 use std::collections::HashSet;
@@ -184,12 +187,9 @@ impl Product {
             .collect::<Vec<ProductDTO>>())
     }
 
-    pub(crate) fn get_product(
-        conn: &mut PgConnection,
-        _product_id: i32,
-    ) -> QueryResult<ProductDTO> {
+    pub fn get_product(conn: &mut PgConnection, _product_id: i32) -> QueryResult<ProductDTO> {
         let product_store = product_stores
-            .filter(product_id.eq(_product_id))
+            .filter(product_stores::product_id.eq(_product_id))
             .first::<ProductStore>(conn)?;
 
         let prices = ProductStorePrice::belonging_to(&product_store)
@@ -201,6 +201,50 @@ impl Product {
             prices,
             product_store,
         ))
+    }
+
+    pub fn subscribe_to_product(
+        conn: &mut PgConnection,
+        _user_id: i32,
+        _product_id: i32,
+    ) -> QueryResult<usize> {
+        // check if user is already subscribed
+        if let Ok(_) = user_subscribed_products
+            .filter(user_id.eq(_user_id))
+            .filter(user_subscribed_products::product_id.eq(_product_id))
+            .first::<UserSubscribedProduct>(conn)
+        {
+            return Ok(0);
+        }
+
+        insert_into(user_subscribed_products::table)
+            .values((
+                user_id.eq(_user_id),
+                user_subscribed_products::product_id.eq(_product_id),
+            ))
+            .execute(conn)
+    }
+
+    pub fn unsubscribe_from_product(
+        conn: &mut PgConnection,
+        _user_id: i32,
+        _product_id: i32,
+    ) -> QueryResult<usize> {
+        // check if user is already unsubscribed
+        if let Ok(_) = user_subscribed_products
+            .filter(user_id.eq(_user_id))
+            .filter(user_subscribed_products::product_id.eq(_product_id))
+            .filter(subscribed.eq(false))
+            .first::<UserSubscribedProduct>(conn)
+        {
+            return Ok(0);
+        }
+
+        update(user_subscribed_products::table)
+            .filter(user_id.eq(_user_id))
+            .filter(user_subscribed_products::product_id.eq(_product_id))
+            .set(subscribed.eq(false))
+            .execute(conn)
     }
 
     pub fn find_product_by_id(conn: &mut PgConnection, _id: i32) -> QueryResult<Product> {

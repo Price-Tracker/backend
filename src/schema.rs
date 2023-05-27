@@ -181,7 +181,7 @@ diesel::table! {
         id -> Int4,
         user_id -> Int4,
         product_id -> Int4,
-        previous_minimal_price -> Float4,
+        previous_minimal_price -> Nullable<Float4>,
         subscribed -> Bool,
         created_date -> Timestamp,
     }

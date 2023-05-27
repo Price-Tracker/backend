@@ -4,6 +4,7 @@ use crate::models::user_tokens::{UserRefreshTokenDTO, UserToken, UserTokensDTO};
 use crate::schema::user_product_history::user_id;
 use crate::schema::user_product_history::{self, dsl::*};
 use crate::schema::user_shopping_carts;
+use crate::schema::user_subscribed_products;
 use crate::schema::users::{self, dsl::*};
 use actix_web::web::Data;
 use argon2::password_hash::rand_core::OsRng;
@@ -12,7 +13,6 @@ use argon2::{Argon2, PasswordHash, PasswordHasher, PasswordVerifier};
 use chrono::NaiveDateTime;
 use diesel::insert_into;
 use diesel::prelude::*;
-use log::info;
 use serde::{Deserialize, Serialize};
 use utoipa::ToSchema;
 
@@ -135,6 +135,19 @@ pub struct UserShoppingCart {
     pub id: i32,
 }
 
+#[derive(Queryable, Associations, Selectable, Insertable, Identifiable, Serialize)]
+#[diesel(belongs_to(Product))]
+#[diesel(belongs_to(User))]
+#[diesel(table_name = user_subscribed_products)]
+pub struct UserSubscribedProduct {
+    pub id: i32,
+    pub user_id: i32,
+    pub product_id: i32,
+    pub previous_minimal_price: Option<f32>,
+    pub subscribed: bool,
+    pub created_date: NaiveDateTime,
+}
+
 #[derive(Queryable, Associations, Selectable, Insertable, Serialize)]
 #[diesel(belongs_to(ProductStore))]
 #[diesel(belongs_to(User))]
@@ -158,6 +171,13 @@ pub struct UserDTO {
 pub struct UserShoppingCartDTO {
     pub product_store_id: i32,
     pub quantity: i32,
+}
+
+#[derive(Insertable, Serialize, Deserialize, ToSchema)]
+#[diesel(table_name = user_subscribed_products)]
+pub struct UserSubscribedProductDTO {
+    pub product_id: i32,
+    pub subscribed: bool,
 }
 
 #[derive(Serialize, Deserialize, ToSchema)]
@@ -269,7 +289,10 @@ impl User {
     ) -> QueryResult<usize> {
         // TODO: rework when new fields will be added
         insert_into(user_product_history)
-            .values((user_id.eq(_user_id), product_id.eq(history_dto.product_id)))
+            .values((
+                user_id.eq(_user_id),
+                user_product_history::product_id.eq(history_dto.product_id),
+            ))
             .execute(conn)
     }
 
@@ -280,9 +303,12 @@ impl User {
         let mut fetched_history = user_product_history
             .select(UserProductHistory::as_select())
             .filter(user_id.eq(_user_id))
-            .distinct_on(product_id)
+            .distinct_on(user_product_history::product_id)
             .limit(60) // TODO: make it configurable
-            .order_by((product_id, user_product_history::created_date.desc()))
+            .order_by((
+                user_product_history::product_id,
+                user_product_history::created_date.desc(),
+            ))
             .get_results(conn)?
             .into_iter()
             .map(|history| HistoryWithProductDTO {
@@ -314,7 +340,7 @@ impl User {
         if let Ok(cart_item) = user_shopping_carts::dsl::user_shopping_carts
             .filter(user_shopping_carts::user_id.eq(_user_id))
             .filter(user_shopping_carts::product_store_id.eq(product_store.id))
-            .get_result::<UserShoppingCart>(conn)
+            .first::<UserShoppingCart>(conn)
         {
             // If it is, then just update quantity
             return diesel::update(&cart_item)
