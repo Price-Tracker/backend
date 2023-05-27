@@ -215,7 +215,7 @@ impl Product {
         {
             UserSubscribedProductDTO {
                 product_id: subscription.product_id,
-                subscribed: true,
+                subscribed: subscription.subscribed,
             }
         } else {
             UserSubscribedProductDTO {
