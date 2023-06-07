@@ -89,7 +89,9 @@ pub async fn subscriptions(
     pool: web::Data<Pool>,
 ) -> Result<HttpResponse> {
     match account_service::get_subscriptions(token_claims, &pool).await {
-        Ok(_) => Ok(HttpResponse::Ok().json(ResponseBody::new("success", ""))),
+        Ok(subscriptions) => {
+            Ok(HttpResponse::Ok().json(ResponseBody::new("success", subscriptions)))
+        }
         Err(err) => Ok(err.response()),
     }
 }
