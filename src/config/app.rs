@@ -1,6 +1,6 @@
 use crate::api::*;
 use crate::models::category::Category;
-use crate::models::product::{Product, ProductDTO, ProductStorePriceDTO};
+use crate::models::product::{Product, ProductDTO, ProductStoreDTO, ProductStorePriceDTO};
 use crate::models::response::{
     ResponsePasswordRequirements, ResponseProduct, ResponseProductStore,
     ResponseProductSubscription, ResponseSubscriptions, ResponseTokens, ResponseVecCategory,
@@ -88,6 +88,7 @@ pub fn get_openapi() -> openapi::OpenApi {
             LoginDTO,
             PasswordRequirements,
             Product,
+            ProductStoreDTO,
             ProductDTO,
             ProductStorePriceDTO,
             ResponsePasswordRequirements,
