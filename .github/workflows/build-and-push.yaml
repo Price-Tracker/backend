@@ -2,6 +2,9 @@ name: "Build project with Nix and Push to GHCR"
 
 on:
   push:
+    branches:
+      - '*'
+  pull_request:
 
 jobs:
   build:
@@ -23,6 +26,7 @@ jobs:
           echo "image_tag=$(nix eval .#dockerImage --apply 'p: p.imageTag')" >> $GITHUB_ENV
 
       - name: Push image to GHCR
+        if: github.ref == 'refs/heads/main'
         run: |
           ${{ env.image_stream }} | pigz | \
             skopeo copy --dest-creds "${{ github.repository_owner }}:${{ secrets.GITHUB_TOKEN }}" \
