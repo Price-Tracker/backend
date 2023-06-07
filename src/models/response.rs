@@ -1,5 +1,5 @@
 use crate::models::category::Category;
-use crate::models::product::ProductDTO;
+use crate::models::product::{ProductDTO, ProductStoreDTO};
 use crate::models::user::{
     HistoryWithProductDTO, PasswordRequirements, UserShoppingCartDTO, UserSubscribedProductDTO,
 };
@@ -13,6 +13,7 @@ use utoipa::ToSchema;
     ResponsePasswordRequirements = ResponseBody<PasswordRequirements>,
     ResponseLogin = ResponseBody<String>,
     ResponseProduct = ResponseBody<ProductDTO>,
+    ResponseProductStore = ResponseBody<ProductStoreDTO>,
     ResponseProductSubscription = ResponseBody<UserSubscribedProductDTO>,
     ResponseVecProduct = ResponseBody<Vec<ProductDTO>>,
     ResponseVecShoppingCart = ResponseBody<Vec<UserShoppingCartDTO>>,

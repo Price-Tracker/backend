@@ -15,8 +15,8 @@ pub struct Store {
     pub city_id: i32,
     pub name: String,
     pub location: String,
-    pub latitude: f32,
-    pub longitude: f32,
+    pub latitude: Option<f32>,
+    pub longitude: Option<f32>,
     pub created_date: NaiveDateTime,
 }
 
@@ -36,5 +36,27 @@ impl Store {
             .select(store_id)
             .filter(product_stores::id.eq(product_store_id))
             .first::<i32>(conn)
+    }
+
+    pub fn get_store_by_product_store_id(
+        conn: &mut PgConnection,
+        product_store_id: i32,
+    ) -> QueryResult<Store> {
+        product_stores
+            .inner_join(stores)
+            .select((
+                stores::id,
+                retail_chain_id,
+                country_id,
+                region_id,
+                city_id,
+                name,
+                location,
+                latitude,
+                longitude,
+                stores::created_date,
+            ))
+            .filter(product_stores::id.eq(product_store_id))
+            .first::<Store>(conn)
     }
 }

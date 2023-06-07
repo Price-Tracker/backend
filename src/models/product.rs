@@ -72,6 +72,14 @@ pub struct ProductDTO {
     max_price: Option<f32>,
 }
 
+// product with store DTO
+#[derive(Serialize, ToSchema)]
+pub struct ProductStoreDTO {
+    product: Product,
+    store: Store,
+    price: f32,
+}
+
 impl Product {
     fn find_latest_price(
         conn: &mut PgConnection,
@@ -267,6 +275,34 @@ impl Product {
             })
             .pop()
             .unwrap())
+    }
+
+    pub fn get_product_by_product_store_id(
+        conn: &mut PgConnection,
+        _product_store_id: i32,
+    ) -> QueryResult<ProductStoreDTO> {
+        let _product_store = product_stores
+            .filter(product_stores::id.eq(_product_store_id))
+            .first::<ProductStore>(conn)?;
+
+        let _product_store_price = product_store_prices
+            .filter(product_store_id.eq(_product_store_id))
+            .order(product_store_prices::created_date.desc())
+            .first::<ProductStorePrice>(conn)?;
+
+        let _store = Store::get_store_by_product_store_id(conn, _product_store.id)?;
+
+        let _product = products
+            .filter(products::id.eq(_product_store.product_id))
+            .first::<Product>(conn)?;
+
+        let _product_dto = ProductStoreDTO {
+            product: _product,
+            store: _store,
+            price: _product_store_price.price,
+        };
+
+        Ok(_product_dto)
     }
 
     pub fn get_product_subscription(

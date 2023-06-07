@@ -2,9 +2,9 @@ use crate::api::*;
 use crate::models::category::Category;
 use crate::models::product::{Product, ProductDTO, ProductStorePriceDTO};
 use crate::models::response::{
-    ResponsePasswordRequirements, ResponseProduct, ResponseProductSubscription,
-    ResponseSubscriptions, ResponseTokens, ResponseVecCategory, ResponseVecHistory,
-    ResponseVecProduct, ResponseVecShoppingCart,
+    ResponsePasswordRequirements, ResponseProduct, ResponseProductStore,
+    ResponseProductSubscription, ResponseSubscriptions, ResponseTokens, ResponseVecCategory,
+    ResponseVecHistory, ResponseVecProduct, ResponseVecShoppingCart,
 };
 use crate::models::user::HistoryWithProductDTO;
 use crate::models::user::{
@@ -74,11 +74,12 @@ pub fn get_openapi() -> openapi::OpenApi {
             history_controller::add_to_history,
             history_controller::get_history,
             ping_controller::ping,
+            product_controller::get_product_subscription,
             product_controller::product,
+            product_controller::product_by_product_store_id,
             product_controller::products,
             product_controller::subscribe_to_product,
             product_controller::unsubscribe_from_product,
-            product_controller::get_product_subscription,
         ),
         components(schemas(
             Category,
@@ -87,21 +88,22 @@ pub fn get_openapi() -> openapi::OpenApi {
             LoginDTO,
             PasswordRequirements,
             Product,
-            ResponseProductSubscription,
-            UserSubscribedProductDTO,
             ProductDTO,
             ProductStorePriceDTO,
             ResponsePasswordRequirements,
             ResponseProduct,
+            ResponseProductStore,
+            ResponseProductSubscription,
+            ResponseSubscriptions,
             ResponseTokens,
             ResponseVecCategory,
             ResponseVecHistory,
             ResponseVecProduct,
             ResponseVecShoppingCart,
-            ResponseSubscriptions,
             UserDTO,
             UserRefreshTokenDTO,
             UserShoppingCartDTO,
+            UserSubscribedProductDTO,
             UserTokensDTO,
         ))
     )]
@@ -134,6 +136,7 @@ pub fn configure_services(cfg: &mut web::ServiceConfig) {
             .service(ping_controller::ping)
             .service(product_controller::product)
             .service(product_controller::products)
+            .service(product_controller::product_by_product_store_id)
             .service(product_controller::subscribe_to_product)
             .service(product_controller::unsubscribe_from_product)
             .service(product_controller::get_product_subscription),

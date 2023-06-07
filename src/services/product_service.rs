@@ -1,6 +1,6 @@
 use crate::errors::ServiceError;
 use crate::middlewares::jwt_middleware::TokenClaims;
-use crate::models::product::{Product, ProductDTO, ProductFilter};
+use crate::models::product::{Product, ProductDTO, ProductFilter, ProductStoreDTO};
 use crate::models::user::{User, UserSubscribedProductDTO};
 use actix_web::http::StatusCode;
 use actix_web::web;
@@ -41,6 +41,25 @@ pub async fn product(
             )),
         },
     )
+    .await
+    .unwrap()
+}
+
+pub async fn product_by_product_store_id(
+    product_store_id: web::Path<i32>,
+    pool: &Data<Pool>,
+) -> Result<ProductStoreDTO, ServiceError> {
+    let conn = &pool.get().await.unwrap();
+
+    conn.interact(|conn| {
+        match Product::get_product_by_product_store_id(conn, product_store_id.into_inner()) {
+            Ok(product) => Ok(product),
+            Err(message) => Err(ServiceError::new(
+                StatusCode::BAD_REQUEST,
+                message.to_string(),
+            )),
+        }
+    })
     .await
     .unwrap()
 }
