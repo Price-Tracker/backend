@@ -1,4 +1,5 @@
 use crate::config::app::Config;
+use crate::middlewares::jwt_middleware::TokenClaims;
 use crate::models::response::ResponseBody;
 use crate::models::user::{LoginDTO, UserDTO};
 use crate::models::user_tokens::UserRefreshTokenDTO;
@@ -74,4 +75,21 @@ pub async fn password_requirements() -> Result<HttpResponse> {
         "success",
         account_service::get_password_requirements(),
     )))
+}
+
+#[utoipa::path(
+    responses(
+        (status = 200, description = "Subscriptions get successful", body = ResponseSubscriptions),
+    ),
+    context_path = "/api/user"
+)]
+#[get("/subscriptions")]
+pub async fn subscriptions(
+    token_claims: TokenClaims,
+    pool: web::Data<Pool>,
+) -> Result<HttpResponse> {
+    match account_service::get_subscriptions(token_claims, &pool).await {
+        Ok(_) => Ok(HttpResponse::Ok().json(ResponseBody::new("success", ""))),
+        Err(err) => Ok(err.response()),
+    }
 }

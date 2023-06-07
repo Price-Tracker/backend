@@ -371,6 +371,22 @@ impl User {
             .collect::<Vec<UserShoppingCartDTO>>())
     }
 
+    pub fn get_subscriptions(
+        conn: &mut PgConnection,
+        _user_id: i32,
+    ) -> QueryResult<Vec<UserSubscribedProductDTO>> {
+        Ok(user_subscribed_products::dsl::user_subscribed_products
+            .filter(user_subscribed_products::user_id.eq(_user_id))
+            .filter(user_subscribed_products::subscribed.eq(true))
+            .get_results::<UserSubscribedProduct>(conn)?
+            .into_iter()
+            .map(|subscribed_product| UserSubscribedProductDTO {
+                product_id: subscribed_product.product_id,
+                subscribed: subscribed_product.subscribed,
+            })
+            .collect::<Vec<UserSubscribedProductDTO>>())
+    }
+
     pub fn find_user_by_id(conn: &mut PgConnection, _id: i32) -> QueryResult<User> {
         users.filter(users::id.eq(_id)).get_result::<User>(conn)
     }

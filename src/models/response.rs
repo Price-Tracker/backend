@@ -17,7 +17,8 @@ use utoipa::ToSchema;
     ResponseVecProduct = ResponseBody<Vec<ProductDTO>>,
     ResponseVecShoppingCart = ResponseBody<Vec<UserShoppingCartDTO>>,
     ResponseVecCategory = ResponseBody<Vec<Category>>,
-    ResponseVecHistory = ResponseBody<Vec<HistoryWithProductDTO>>
+    ResponseVecHistory = ResponseBody<Vec<HistoryWithProductDTO>>,
+    ResponseSubscriptions = ResponseBody<Vec<UserSubscribedProductDTO>>,
 )]
 pub struct ResponseBody<T> {
     pub status: String,

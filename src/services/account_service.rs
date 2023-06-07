@@ -1,6 +1,9 @@
 use crate::config::app::Config;
 use crate::errors::ServiceError;
-use crate::models::user::{LoginDTO, PasswordRequirements, User, UserDTO};
+use crate::middlewares::jwt_middleware::TokenClaims;
+use crate::models::user::{
+    LoginDTO, PasswordRequirements, User, UserDTO, UserSubscribedProductDTO,
+};
 use crate::models::user_tokens::{UserRefreshTokenDTO, UserTokensDTO};
 use actix_web::http::StatusCode;
 use actix_web::web::Data;
@@ -51,4 +54,31 @@ pub async fn refresh_token(
 
 pub fn get_password_requirements() -> PasswordRequirements {
     User::get_password_requirements()
+}
+
+pub async fn get_subscriptions(
+    token_claims: TokenClaims,
+    pool: &Data<Pool>,
+) -> Result<Vec<UserSubscribedProductDTO>, ServiceError> {
+    let conn = &pool.get().await.unwrap();
+
+    conn.interact(move |conn| {
+        let user = User::find_user_by_login(conn, &token_claims.login);
+
+        match user {
+            Ok(user) => match User::get_subscriptions(conn, user.id) {
+                Ok(subscriptions) => Ok(subscriptions),
+                Err(message) => Err(ServiceError::new(
+                    StatusCode::BAD_REQUEST,
+                    message.to_string(),
+                )),
+            },
+            Err(message) => Err(ServiceError::new(
+                StatusCode::BAD_REQUEST,
+                message.to_string(),
+            )),
+        }
+    })
+    .await
+    .unwrap()
 }
