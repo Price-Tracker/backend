@@ -54,7 +54,7 @@ pub struct ProductFilter {
     max_price: Option<f32>,
 }
 
-#[derive(Serialize, ToSchema)]
+#[derive(Serialize, ToSchema, PartialEq)]
 pub struct ProductStorePriceDTO {
     pub store_id: i32,
     pub store_name: String,
@@ -177,14 +177,42 @@ impl Product {
 
         let filtered_prices = prices_query.load::<ProductStorePrice>(conn)?;
 
-        Ok(filtered_prices
+        let products_dto: Vec<ProductDTO> = filtered_prices
             .grouped_by(&filtered_product_stores)
             .into_iter()
             .zip(filtered_product_stores)
             .map(|(prices, product_store)| {
                 Self::map_product_store_and_prices(conn, prices, product_store)
             })
-            .collect::<Vec<ProductDTO>>())
+            .collect::<Vec<ProductDTO>>();
+
+        Ok(products_dto
+            .into_iter()
+            .fold(Vec::new(), |mut acc, product_dto| {
+                if let Some(existing_product_dto) = acc
+                    .iter_mut()
+                    .find(|p| p.product.id == product_dto.product.id)
+                {
+                    existing_product_dto.prices.extend(product_dto.prices);
+                    existing_product_dto
+                        .prices
+                        .sort_by(|a, b| a.price.partial_cmp(&b.price).unwrap_or(Ordering::Equal));
+                    existing_product_dto.prices.dedup();
+                    existing_product_dto.min_price = existing_product_dto
+                        .prices
+                        .iter()
+                        .min_by(|a, b| a.price.partial_cmp(&b.price).unwrap_or(Ordering::Equal))
+                        .map(|p| p.price);
+                    existing_product_dto.max_price = existing_product_dto
+                        .prices
+                        .iter()
+                        .max_by(|a, b| a.price.partial_cmp(&b.price).unwrap_or(Ordering::Equal))
+                        .map(|p| p.price);
+                } else {
+                    acc.push(product_dto);
+                }
+                acc
+            }))
     }
 
     pub fn get_product(conn: &mut PgConnection, _product_id: i32) -> QueryResult<ProductDTO> {
