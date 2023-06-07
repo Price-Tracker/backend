@@ -52,6 +52,7 @@ pub struct ProductFilter {
     category_id: Option<i32>,
     min_price: Option<f32>,
     max_price: Option<f32>,
+    limit: Option<i16>,
 }
 
 #[derive(Serialize, ToSchema, PartialEq)]
@@ -145,6 +146,10 @@ impl Product {
 
         if let Some(_category_id) = filter.category_id {
             products_query = products_query.filter(category_id.eq(_category_id));
+        }
+
+        if let Some(limit) = filter.limit {
+            products_query = products_query.limit(limit.into());
         }
 
         let mut product_store_ids_with_prices = product_store_prices
