@@ -216,19 +216,52 @@ impl Product {
     }
 
     pub fn get_product(conn: &mut PgConnection, _product_id: i32) -> QueryResult<ProductDTO> {
-        let product_store = product_stores
+        let _product_stores = product_stores
             .filter(product_stores::product_id.eq(_product_id))
-            .first::<ProductStore>(conn)?;
+            .load::<ProductStore>(conn)?;
 
-        let prices = ProductStorePrice::belonging_to(&product_store)
+        let prices = ProductStorePrice::belonging_to(&_product_stores)
             .select(ProductStorePrice::as_select())
             .load::<ProductStorePrice>(conn)?;
 
-        Ok(Self::map_product_store_and_prices(
-            conn,
-            prices,
-            product_store,
-        ))
+        let product_dto: Vec<ProductDTO> = prices
+            .grouped_by(&_product_stores)
+            .into_iter()
+            .zip(_product_stores)
+            .map(|(prices, product_store)| {
+                Self::map_product_store_and_prices(conn, prices, product_store)
+            })
+            .collect::<Vec<ProductDTO>>();
+
+        Ok(product_dto
+            .into_iter()
+            .fold(Vec::<ProductDTO>::new(), |mut acc, product_dto| {
+                if let Some(existing_product_dto) = acc
+                    .iter_mut()
+                    .find(|p| p.product.id == product_dto.product.id)
+                {
+                    existing_product_dto.prices.extend(product_dto.prices);
+                    existing_product_dto
+                        .prices
+                        .sort_by(|a, b| a.price.partial_cmp(&b.price).unwrap_or(Ordering::Equal));
+                    existing_product_dto.prices.dedup();
+                    existing_product_dto.min_price = existing_product_dto
+                        .prices
+                        .iter()
+                        .min_by(|a, b| a.price.partial_cmp(&b.price).unwrap_or(Ordering::Equal))
+                        .map(|p| p.price);
+                    existing_product_dto.max_price = existing_product_dto
+                        .prices
+                        .iter()
+                        .max_by(|a, b| a.price.partial_cmp(&b.price).unwrap_or(Ordering::Equal))
+                        .map(|p| p.price);
+                } else {
+                    acc.push(product_dto);
+                }
+                acc
+            })
+            .pop()
+            .unwrap())
     }
 
     pub fn get_product_subscription(
