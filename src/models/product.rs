@@ -81,7 +81,7 @@ pub struct ProductStoreDTO {
 }
 
 impl Product {
-    fn find_latest_price(
+    pub fn find_latest_price(
         conn: &mut PgConnection,
         _product_store_id: i32,
     ) -> Option<ProductStorePrice> {

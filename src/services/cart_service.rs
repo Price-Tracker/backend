@@ -60,3 +60,30 @@ pub async fn get_cart(
     .await
     .unwrap()
 }
+
+pub async fn get_cart_total_price(
+    token_claims: TokenClaims,
+    pool: &web::Data<Pool>,
+) -> Result<f32, ServiceError> {
+    let conn = &pool.get().await.unwrap();
+
+    conn.interact(move |conn| {
+        let user = User::find_user_by_login(conn, &token_claims.login);
+
+        match user {
+            Ok(user) => match User::get_cart_total_price(conn, user.id) {
+                Ok(total_price) => Ok(total_price),
+                Err(message) => Err(ServiceError::new(
+                    StatusCode::BAD_REQUEST,
+                    message.to_string(),
+                )),
+            },
+            Err(message) => Err(ServiceError::new(
+                StatusCode::BAD_REQUEST,
+                message.to_string(),
+            )),
+        }
+    })
+    .await
+    .unwrap()
+}

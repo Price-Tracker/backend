@@ -39,3 +39,21 @@ pub async fn get_cart(token_claims: TokenClaims, pool: web::Data<Pool>) -> Resul
         Err(err) => Ok(err.response()),
     }
 }
+
+#[utoipa::path(
+    responses(
+        (status = 200, description = "Got a cart total price", body = ResponseCartTotalPrice),
+        (status = 400, description = "Unknown error"),
+    ),
+        context_path = "/api/cart"
+    )]
+#[get("/total")]
+pub async fn get_cart_total_price(
+    token_claims: TokenClaims,
+    pool: web::Data<Pool>,
+) -> Result<HttpResponse> {
+    match cart_service::get_cart_total_price(token_claims, &pool).await {
+        Ok(total_price) => Ok(HttpResponse::Ok().json(ResponseBody::new("success", total_price))),
+        Err(err) => Ok(err.response()),
+    }
+}

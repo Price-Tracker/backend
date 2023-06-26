@@ -371,6 +371,26 @@ impl User {
             .collect::<Vec<UserShoppingCartDTO>>())
     }
 
+    pub fn get_cart_total_price(conn: &mut PgConnection, _user_id: i32) -> QueryResult<f32> {
+        let cart_items = user_shopping_carts::dsl::user_shopping_carts
+            .filter(user_shopping_carts::user_id.eq(_user_id))
+            .get_results::<UserShoppingCart>(conn)?;
+
+        let mut total_price = 0.0;
+
+        for cart_item in cart_items {
+            let product_store =
+                Product::find_product_store_by_id(conn, cart_item.product_store_id)?;
+            let product_store_price = Product::find_latest_price(conn, product_store.id);
+
+            if let Some(_product_store_price) = product_store_price {
+                total_price += _product_store_price.price * cart_item.quantity as f32;
+            }
+        }
+
+        Ok(total_price)
+    }
+
     pub fn get_subscriptions(
         conn: &mut PgConnection,
         _user_id: i32,

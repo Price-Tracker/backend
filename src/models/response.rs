@@ -20,6 +20,7 @@ use utoipa::ToSchema;
     ResponseVecCategory = ResponseBody<Vec<Category>>,
     ResponseVecHistory = ResponseBody<Vec<HistoryWithProductDTO>>,
     ResponseSubscriptions = ResponseBody<Vec<UserSubscribedProductDTO>>,
+    ResponseCartTotalPrice = ResponseBody<f32>
 )]
 pub struct ResponseBody<T> {
     pub status: String,

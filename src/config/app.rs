@@ -2,7 +2,7 @@ use crate::api::*;
 use crate::models::category::Category;
 use crate::models::product::{Product, ProductDTO, ProductStoreDTO, ProductStorePriceDTO};
 use crate::models::response::{
-    ResponsePasswordRequirements, ResponseProduct, ResponseProductStore,
+    ResponseCartTotalPrice, ResponsePasswordRequirements, ResponseProduct, ResponseProductStore,
     ResponseProductSubscription, ResponseSubscriptions, ResponseTokens, ResponseVecCategory,
     ResponseVecHistory, ResponseVecProduct, ResponseVecShoppingCart,
 };
@@ -70,6 +70,7 @@ pub fn get_openapi() -> openapi::OpenApi {
             account_controller::subscriptions,
             cart_controller::add_to_cart,
             cart_controller::get_cart,
+            cart_controller::get_cart_total_price,
             category_controller::categories,
             history_controller::add_to_history,
             history_controller::get_history,
@@ -101,6 +102,7 @@ pub fn get_openapi() -> openapi::OpenApi {
             ResponseVecHistory,
             ResponseVecProduct,
             ResponseVecShoppingCart,
+            ResponseCartTotalPrice,
             UserDTO,
             UserRefreshTokenDTO,
             UserShoppingCartDTO,
@@ -129,7 +131,8 @@ pub fn configure_services(cfg: &mut web::ServiceConfig) {
             .service(
                 web::scope("/cart")
                     .service(cart_controller::add_to_cart)
-                    .service(cart_controller::get_cart),
+                    .service(cart_controller::get_cart)
+                    .service(cart_controller::get_cart_total_price),
             )
             .service(category_controller::categories)
             .service(history_controller::add_to_history)
